@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import type { Plugin } from "@/lib/plugins";
 import { Badge } from "@/components/ui/badge";
@@ -21,15 +22,29 @@ export function PluginCard({ plugin }: { plugin: Plugin }) {
     >
       {/* preview / artwork area */}
       <div className="relative aspect-[16/10] overflow-hidden border-b border-border">
-        <div className="absolute inset-0 brand-glow opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="absolute inset-0 bg-grid mask-fade-b opacity-40" />
-        {/* placeholder UI mock — swap for a real screenshot in /public/plugins */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-mono text-5xl font-semibold tracking-tighter text-[var(--brand)] opacity-90 sm:text-6xl">
-            {plugin.name.replace(/^aka/, "")}
-          </span>
-        </div>
-        <span className="absolute left-4 top-4 inline-flex items-center rounded-full bg-background/60 px-2.5 py-1 font-mono text-[11px] text-muted-foreground backdrop-blur">
+        {plugin.heroImage ? (
+          <>
+            <Image
+              src={plugin.heroImage}
+              alt={`${plugin.name} interface`}
+              fill
+              className="object-cover object-top opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:scale-[1.02]"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 380px"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+          </>
+        ) : (
+          <>
+            <div className="absolute inset-0 brand-glow opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-grid mask-fade-b opacity-40" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-mono text-5xl font-semibold tracking-tighter text-[var(--brand)] opacity-90 sm:text-6xl">
+                {plugin.name.replace(/^aka/i, "")}
+              </span>
+            </div>
+          </>
+        )}
+        <span className="absolute left-4 top-4 z-10 inline-flex items-center rounded-full bg-background/60 px-2.5 py-1 font-mono text-[11px] text-muted-foreground backdrop-blur">
           {plugin.version}
         </span>
       </div>
