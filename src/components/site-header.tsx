@@ -30,30 +30,38 @@ export function SiteHeader() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-colors duration-300",
+        "sticky top-0 z-50 w-full transition-all duration-300",
         scrolled
-          ? "border-b border-border bg-background/80 backdrop-blur-xl"
-          : "border-b border-transparent",
+          ? "bg-background/70 backdrop-blur-xl"
+          : "bg-transparent",
       )}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-8">
         <Wordmark />
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {site.nav.map((item) => (
+        <nav className="hidden items-center gap-9 md:flex">
+          {site.nav.map((item, i) => (
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="group inline-flex items-baseline gap-1.5 font-mono text-[11px] font-light uppercase tracking-digital text-muted-foreground transition-colors hover:text-foreground"
             >
+              <span className="text-[var(--brand)]/50 transition-colors group-hover:text-[var(--brand)]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
               {item.label}
             </Link>
           ))}
         </nav>
 
         <div className="hidden md:flex">
-          <ButtonLink size="sm" className="rounded-full" href="/#plugins">
-            Browse plugins
+          <ButtonLink
+            href="/#plugins"
+            variant="outline"
+            size="sm"
+            className="rounded-full border-border/60 font-mono text-[11px] font-light uppercase tracking-digital text-muted-foreground hover:text-foreground"
+          >
+            browse
           </ButtonLink>
         </div>
 
@@ -74,28 +82,40 @@ export function SiteHeader() {
                 </SheetTitle>
               </SheetHeader>
               <nav className="mt-2 flex flex-col gap-1 px-4">
-                {site.nav.map((item) => (
+                {site.nav.map((item, i) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-lg px-3 py-2.5 text-base text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    className="inline-flex items-baseline gap-2 rounded-lg px-3 py-2.5 font-mono text-sm font-light uppercase tracking-digital text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                   >
+                    <span className="text-[var(--brand)]/60">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
                     {item.label}
                   </Link>
                 ))}
                 <ButtonLink
-                  className="mt-3 rounded-full"
                   href="/#plugins"
+                  variant="outline"
                   onClick={() => setOpen(false)}
+                  className="mt-3 rounded-full font-mono text-xs font-light uppercase tracking-digital"
                 >
-                  Browse plugins
+                  browse plugins
                 </ButtonLink>
               </nav>
             </SheetContent>
           </Sheet>
         </div>
       </div>
+
+      {/* gradient hairline that fades in on scroll */}
+      <div
+        className={cn(
+          "h-px w-full bg-gradient-to-r from-transparent via-border to-transparent transition-opacity duration-300",
+          scrolled ? "opacity-100" : "opacity-0",
+        )}
+      />
     </header>
   );
 }

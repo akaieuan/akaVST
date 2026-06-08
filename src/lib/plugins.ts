@@ -1,10 +1,10 @@
 /**
- * The plugin catalog — single source of truth for every product.
+ * The plugin catalog, the single source of truth for every product.
  * Adding a plugin = adding one entry to PLUGINS below.
  *
  * Copy here is written from each plugin's own README / manual, so it's
  * accurate to the actual feature set. `priceId` is intentionally left
- * empty for now — Buy buttons render as "coming soon" until you add one.
+ * empty for now, so Buy buttons render as "coming soon" until you add one.
  */
 
 export type PluginFormat = "VST3" | "AU" | "Standalone";
@@ -67,7 +67,7 @@ export const PLUGINS: Plugin[] = [
     description:
       "A squelchy two-oscillator acid synth wrapped around an Elektron-style 64-step sequencer with per-step parameter locks, a drag-to-wire modulation patch bay, and a master FX chain. Built to be performed live in Ableton.",
     overview:
-      "akaBleep is a monophonic instrument for the bleep-bloop lineage of hypnotic techno — the Donato Dozzy / Surgeon / Plastikman school where one acid line, slowly mutating over sixteen bars, is the track. Instead of wiring a synth to a sequencer to a fistful of utilities, akaBleep folds the whole loop into one window: a voice that squelches, a sequencer that locks a different sound to every step, a patch bay to set it breathing, and an FX chain to smear it into the room.",
+      "akaBleep is a monophonic instrument for the bleep-bloop lineage of hypnotic techno, the Donato Dozzy / Surgeon / Plastikman school where one acid line, slowly mutating over sixteen bars, is the track. Instead of wiring a synth to a sequencer to a fistful of utilities, akaBleep folds the whole loop into one window: a voice that squelches, a sequencer that locks a different sound to every step, a patch bay to set it breathing, and an FX chain to smear it into the room.",
     highlights: [
       "Monophonic acid voice with the classic resonant ‘bloop’",
       "64 steps across 4 pages with per-step parameter locks",
@@ -78,27 +78,27 @@ export const PLUGINS: Plugin[] = [
     features: [
       {
         title: "The acid voice",
-        body: "Two multi-mode oscillators (saw / square / sine and more), each with tune, level, pulse-width and FM, plus a sub and ring mod. Everything sums into a tanh drive stage and a ladder filter. Three envelopes sculpt it — amp ADSR, a filter ADSR with ±5 octaves of sweep, and the exponential pitch-decay envelope that is the secret to the genre’s resonant ‘bloop’.",
+        body: "Two multi-mode oscillators (saw / square / sine and more), each with tune, level, pulse-width and FM, plus a sub and ring mod. Everything sums into a tanh drive stage and a ladder filter. Three envelopes sculpt it: an amp ADSR, a filter ADSR with ±5 octaves of sweep, and the exponential pitch-decay envelope that is the secret to the genre’s resonant ‘bloop’.",
       },
       {
         title: "64-step sequencer with parameter locks",
-        body: "The heart of the instrument. Hit REC and twist any knob while it plays to lock that value live to the current step, or select a step in EDIT and dial it by hand. Around 40 parameters are P-lockable, so step 3 can be a dark sub thud and step 11 a screaming resonant chirp — from one voice.",
+        body: "The heart of the instrument. Hit REC and twist any knob while it plays to lock that value live to the current step, or select a step in EDIT and dial it by hand. Around 40 parameters are P-lockable, so step 3 can be a dark sub thud and step 11 a screaming resonant chirp, all from one voice.",
       },
       {
-        title: "Chords, chance & generators",
-        body: "Per step you get chords (up to 4 notes), velocity, gate length and probability. Set chance below 100% and the line never repeats the same way twice. Pattern generators seed ideas instantly — four-on-the-floor, off-beats, 8ths, Euclidean 3/5/7, or sparse / dense random.",
+        title: "Chords, chance and generators",
+        body: "Per step you get chords (up to 4 notes), velocity, gate length and probability. Set chance below 100% and the line never repeats the same way twice. Pattern generators seed ideas instantly: four-on-the-floor, off-beats, 8ths, Euclidean 3/5/7, or sparse / dense random.",
       },
       {
         title: "Modulation patch bay",
-        body: "Flip to the patch bay and wire modulation like a modular: drag a cable from a source jack to a destination. Route LFO, filter envelope, noise or velocity into oscillator pitch & PW, filter cutoff & resonance, or amplitude — bipolar where it matters. Drag a jack to set depth, right-click a cable to pull it.",
+        body: "Flip to the patch bay and wire modulation like a modular: drag a cable from a source jack to a destination. Route LFO, filter envelope, noise or velocity into oscillator pitch & PW, filter cutoff & resonance, or amplitude, bipolar where it matters. Drag a jack to set depth, right-click a cable to pull it.",
       },
       {
         title: "Master FX chain",
-        body: "A built-in chain runs after the voice: chorus → phaser → bitcrush → ping-pong delay → reverb. Each stage bypasses itself at zero mix, every FX parameter is P-lockable per step, and a live spectrum analyzer shows what you’re doing. The bitcrush + ping-pong delay pair is the fast route from clean bleep to ruined dub-techno smear.",
+        body: "A built-in chain runs after the voice: chorus, phaser, bitcrush, ping-pong delay, reverb. Each stage bypasses itself at zero mix, every FX parameter is P-lockable per step, and a live spectrum analyzer shows what you’re doing. The bitcrush and ping-pong delay pair is the fast route from clean bleep to ruined dub-techno smear.",
       },
       {
         title: "Built to perform",
-        body: "Hit PLAY to run standalone, or it phase-syncs to the host transport — drop it on an Ableton track, hit space, and it locks to the grid. An Ableton-style computer-keyboard piano lets you play without a controller, with undo / redo across edits, locks and preset loads.",
+        body: "Hit PLAY to run standalone, or it phase-syncs to the host transport. Drop it on an Ableton track, hit space, and it locks to the grid. An Ableton-style computer-keyboard piano lets you play without a controller, with undo / redo across edits, locks and preset loads.",
       },
     ],
     signalFlow: `        ┌─ osc 1 ─┐
@@ -129,11 +129,11 @@ export const PLUGINS: Plugin[] = [
     },
     heroImage: "/plugins/bleep/akableep-ui.png",
     gallery: [
-      { src: "/plugins/bleep/akableep-ui.png", caption: "The synth voice — oscillators, envelopes, ladder filter" },
+      { src: "/plugins/bleep/akableep-ui.png", caption: "The synth voice: oscillators, envelopes, ladder filter" },
       { src: "/plugins/bleep/sequencer.png", caption: "64-step sequencer in EDIT mode with per-step locks" },
-      { src: "/plugins/bleep/patchbay.png", caption: "Modulation patch bay — drag-to-wire cable matrix" },
+      { src: "/plugins/bleep/patchbay.png", caption: "Modulation patch bay, a drag-to-wire cable matrix" },
       { src: "/plugins/bleep/fx-chain.png", caption: "Master FX chain with live spectrum analyzer" },
-      { src: "/plugins/bleep/presets.png", caption: "Preset browser — genre-curated factory patches" },
+      { src: "/plugins/bleep/presets.png", caption: "Preset browser with genre-curated factory patches" },
     ],
     specs: [
       { label: "Voice", value: "Monophonic acid" },
@@ -165,43 +165,43 @@ export const PLUGINS: Plugin[] = [
     description:
       "Four independent layers sharing a single 8-voice pool, routed by a hardware-style Multi engine, then smeared through a switchable FX rack and a dedicated lo-fi mangle section. Signed, universal, and DAW-ready.",
     overview:
-      "akaEnzyme reimagines the Waldorf Protein’s 8-bit tabletop character as a modern plugin. Four layers (A/B/C/D) share one 8-voice pool, routed by a hardware-style Multi engine, then run through a switchable FX rack and a dedicated ‘sample-breaking’ mangle section. The grit comes from bitcrush, sample-rate reduction and drive waveshaping — it evokes the hardware’s lo-fi bite rather than emulating a wavetable engine. Designed to be stacked, split and mangled fast, live, inside Ableton.",
+      "akaEnzyme reimagines the Waldorf Protein’s 8-bit tabletop character as a modern plugin. Four layers (A/B/C/D) share one 8-voice pool, routed by a hardware-style Multi engine, then run through a switchable FX rack and a dedicated ‘sample-breaking’ mangle section. The grit comes from bitcrush, sample-rate reduction and drive waveshaping, so it evokes the hardware’s lo-fi bite rather than emulating a wavetable engine. Designed to be stacked, split and mangled fast, live, inside Ableton.",
     highlights: [
       "4 layers (A/B/C/D) over one shared 8-voice pool",
-      "Five Multi modes — layered, round-robin, MIDI-split & more",
+      "Five Multi modes: layered, round-robin, MIDI-split and more",
       "Two switchable FX slots, 1-of-9 each",
       "Lo-fi mangle: bitcrush, SRR, drive, stutter",
-      "Host-synced arpeggiator + per-layer Dirt",
+      "Host-synced arpeggiator and per-layer Dirt",
     ],
     features: [
       {
         title: "Voice engine, per layer",
-        body: "Each layer gets two multi-mode oscillators with 2-op FM, PolyBLEP band-limited saw & square, a sub and ring mod, a ladder filter (LPF24 / LPF12 / HPF12 / BPF12), three envelopes, a tanh drive stage and log-scale glide. Per-layer ‘Dirt’ adds noise grit — Static / Crackle / Geiger / Click / Burst — mixed pre-filter so the ladder shapes it.",
+        body: "Each layer gets two multi-mode oscillators with 2-op FM, PolyBLEP band-limited saw & square, a sub and ring mod, a ladder filter (LPF24 / LPF12 / HPF12 / BPF12), three envelopes, a tanh drive stage and log-scale glide. Per-layer ‘Dirt’ adds noise grit (Static / Crackle / Geiger / Click / Burst) mixed pre-filter so the ladder shapes it.",
       },
       {
         title: "The Multi engine",
-        body: "One shared 8-voice pool with global voice-stealing, exactly like the hardware — not four separate synths. Five modes: Single, Layered, Round-Robin, Random-Robin and MIDI-Split, with three key-split points. Channel-tagging routing guarantees note-offs release exactly the layers a note-on hit, even if the mode changes mid-note.",
+        body: "One shared 8-voice pool with global voice-stealing, exactly like the hardware, not four separate synths. Five modes: Single, Layered, Round-Robin, Random-Robin and MIDI-Split, with three key-split points. Channel-tagging routing guarantees note-offs release exactly the layers a note-on hit, even if the mode changes mid-note.",
       },
       {
         title: "Switchable FX rack",
         body: "Two series slots, each switchable 1-of-9: Chorus, Flanger, Phaser, Tremolo, Drive, Compressor, EQ, Delay, Reverb. Generic macro controls (mix / rate / depth / feedback / drive / tone / time) are reinterpreted per type, and each slot bypasses itself when its mix is at zero.",
       },
       {
-        title: "Lo-fi / mangle",
+        title: "Lo-fi and mangle",
         body: "The sample-breaking section, in series: drive waveshapers (PNP / Tube / Pickup / Diode / Crunch), 1–16 bit bitcrush, sample-rate reduction up to 64×, and a free-running stutter / glitch buffer-repeat. The fast route from a clean stack to a broken, vinyl-bitten texture.",
       },
       {
         title: "Host-synced arpeggiator",
-        body: "Up / Down / Up-Down / Random / As-Played patterns, note-division rate (1/2 … 1/32 + triplets), up to 4 octaves, gate length and swing. Locks to host tempo and feeds the Multi engine, so the arp follows your layer routing.",
+        body: "Up / Down / Up-Down / Random / As-Played patterns, note-division rate (1/2 to 1/32 plus triplets), up to 4 octaves, gate length and swing. Locks to host tempo and feeds the Multi engine, so the arp follows your layer routing.",
       },
       {
         title: "Finished-instrument feel",
-        body: "Ships as a signed universal VST3 / AU that passes Apple’s auval on both architectures. Click-free smoothed master gain, a master output-safety stage (DC blocker + soft clipper), correct tail & latency reporting, a resizable aspect-locked UI, and a fully host-automatable, per-layer parameter tree.",
+        body: "Ships as a signed universal VST3 / AU that passes Apple’s auval on both architectures. Click-free smoothed master gain, a master output-safety stage (DC blocker plus soft clipper), correct tail & latency reporting, a resizable aspect-locked UI, and a fully host-automatable, per-layer parameter tree.",
       },
     ],
     presets: {
       count: 0,
-      note: "A factory bank spanning every category, exercising all four layers — from layered pads and 4-zone MIDI splits to round-robin plucks and bitcrush textures.",
+      note: "A factory bank spanning every category, exercising all four layers, from layered pads and 4-zone MIDI splits to round-robin plucks and bitcrush textures.",
       examples: ["Bass", "Lead", "Keys", "Pad", "Multi", "Arp", "Texture"],
     },
     gallery: [],
@@ -233,19 +233,19 @@ export const PLUGINS: Plugin[] = [
     oneLiner: "Sculpting sampler, Torso S-4-inspired.",
     tagline: "A sculpting sampler inspired by the Torso S-4.",
     description:
-      "Take one sample (or sixteen) and run it through granular, resonant, destruction and space engines under a 4-slot modulation matrix — then resample the mangled result straight back into the instrument.",
+      "Take one sample (or sixteen) and run it through granular, resonant, destruction and space engines under a 4-slot modulation matrix, then resample the mangled result straight back into the instrument.",
     overview:
-      "i4 takes a sample and runs it through a series of sound-sculpting engines, lets you modulate any of it, and resamples the result straight back into the instrument. Built for performance: granular textures, resonant tones, destruction and space — all under a 4-slot modulation matrix reaching nearly 50 targets. Tape is the master clip; sixteen pads sum in right after it, so every pad runs through the full effect chain too.",
+      "i4 takes a sample and runs it through a series of sound-sculpting engines, lets you modulate any of it, and resamples the result straight back into the instrument. Built for performance: granular textures, resonant tones, destruction and space, all under a 4-slot modulation matrix reaching nearly 50 targets. Tape is the master clip; sixteen pads sum in right after it, so every pad runs through the full effect chain too.",
     highlights: [
-      "Varispeed tape source + 16 sample pads",
-      "Mosaic granular & a 48-band resonator",
-      "Deform destruction + Vast time & space",
-      "Beat Repeat, Tape Stop & a Loop Recorder",
+      "Varispeed tape source plus 16 sample pads",
+      "Mosaic granular and a 48-band resonator",
+      "Deform destruction plus Vast time & space",
+      "Beat Repeat, Tape Stop and a Loop Recorder",
       "4-slot mod matrix to ~50 destinations",
     ],
     features: [
       {
-        title: "Tape — the source",
+        title: "Tape, the source",
         body: "A varispeed tape-style player. Scrub start / length, rotate the loop, glide between speeds, reverse, freeze the playhead, and keylock for pitch-independent stretching. SOS (sound-on-sound) layers passes into the loop.",
       },
       {
@@ -253,20 +253,20 @@ export const PLUGINS: Plugin[] = [
         body: "Sixteen sample pads triggered from MIDI or the on-screen keys. Pads feed the same chain as Tape, so they get granulated, resonated, deformed and spaced alongside it.",
       },
       {
-        title: "Mosaic & Ring",
-        body: "Mosaic is a granular cloud — set grain rate, size and contour, spray and warp the cloud, detune and quantize grain pitch to a scale. Ring is a 48-band resonator bank: tune cutoff, resonance and decay, pitch and detune the partials, inject waves and noise for harmonic, bell-like or vocal resonances.",
+        title: "Mosaic and Ring",
+        body: "Mosaic is a granular cloud: set grain rate, size and contour, spray and warp the cloud, detune and quantize grain pitch to a scale. Ring is a 48-band resonator bank: tune cutoff, resonance and decay, pitch and detune the partials, inject waves and noise for harmonic, bell-like or vocal resonances.",
       },
       {
-        title: "Deform & Vast",
-        body: "Deform handles destruction and dynamics — drive/saturation, compression, bitcrush, spectral tilt, a noise layer and a gate. Vast is a synced delay and a reverb in one: feedback, stereo spread, damp, decay, size, and an infinite freeze.",
+        title: "Deform and Vast",
+        body: "Deform handles destruction and dynamics: drive/saturation, compression, bitcrush, spectral tilt, a noise layer and a gate. Vast is a synced delay and a reverb in one, with feedback, stereo spread, damp, decay, size, and an infinite freeze.",
       },
       {
         title: "Resample anything",
-        body: "Beat Repeat is a tempo-synced stutter that replaces the output with a repeating slice — what you hear is exactly what gets resampled. Tape Stop gives a turntable spin-down, and the Loop Recorder captures up to 30 seconds of the full post-effect stereo output and drops it onto a pad.",
+        body: "Beat Repeat is a tempo-synced stutter that replaces the output with a repeating slice, so what you hear is exactly what gets resampled. Tape Stop gives a turntable spin-down, and the Loop Recorder captures up to 30 seconds of the full post-effect stereo output and drops it onto a pad.",
       },
       {
         title: "Deep modulation",
-        body: "Four mod slots — each a Wave LFO, Random, or ADSR envelope — with multiple routes per slot to nearly 50 destinations spanning every engine. Rates are tempo-syncable; right-click any knob to assign it to a slot. A one-knob Master Filter morphs lowpass → bypass → highpass across the mix.",
+        body: "Four mod slots, each a Wave LFO, Random, or ADSR envelope, with multiple routes per slot to nearly 50 destinations spanning every engine. Rates are tempo-syncable; right-click any knob to assign it to a slot. A one-knob Master Filter morphs lowpass → bypass → highpass across the mix.",
       },
     ],
     signalFlow: `        ┌──────────────── Mod Matrix · 4 slots ────────────────┐

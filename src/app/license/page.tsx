@@ -8,7 +8,7 @@ export default function LicensePage() {
       <p>
         This placeholder EULA covers your use of the compiled plugins. Replace it
         with your finalised agreement (you already maintain an EULA in your plugin
-        repos — paste the canonical version here).
+        repos, so paste the canonical version here).
       </p>
       <h2>Grant of license</h2>
       <p>

@@ -8,13 +8,13 @@ export default function RefundPage() {
       <p>
         Because these products are digital goods delivered instantly and
         downloadable immediately after purchase, all sales are generally final.
-        This is placeholder copy — confirm the wording with your own policy and
+        This is placeholder copy, so confirm the wording with your own policy and
         local consumer law before launch.
       </p>
       <h2>Exceptions</h2>
       <p>
         If a plugin is faulty, fails to install, or isn&apos;t as described, get in
-        touch and we&apos;ll make it right — a fix or a refund.
+        touch and we&apos;ll make it right with a fix or a refund.
       </p>
       <h2>How to request</h2>
       <p>

@@ -6,16 +6,19 @@ export function Wordmark({ className }: { className?: string }) {
     <Link
       href="/"
       className={cn(
-        "group inline-flex items-baseline font-mono text-lg font-semibold tracking-tight",
+        "group inline-flex items-center font-mono text-[15px] font-light tracking-tight",
         className,
       )}
       aria-label="akaplugins home"
     >
-      <span className="text-muted-foreground transition-colors group-hover:text-foreground">
+      <span className="text-muted-foreground/70 transition-colors group-hover:text-muted-foreground">
         aka
       </span>
       <span className="text-foreground">plugins</span>
-      <span className="ml-1 inline-block size-1.5 translate-y-[-2px] rounded-full bg-[var(--brand)]" />
+      <span
+        aria-hidden
+        className="ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-[1px] bg-gradient-to-b from-[var(--brand)] to-[var(--brand)]/30 motion-safe:animate-pulse"
+      />
     </Link>
   );
 }

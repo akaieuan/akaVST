@@ -18,13 +18,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: `${site.brand} — instruments & effects`,
-    template: `%s — ${site.brand}`,
+    default: `${site.brand} · instruments & effects`,
+    template: `%s · ${site.brand}`,
   },
   description: site.description,
   metadataBase: new URL(site.url),
   openGraph: {
-    title: `${site.brand} — instruments & effects`,
+    title: `${site.brand} · instruments & effects`,
     description: site.description,
     type: "website",
   },

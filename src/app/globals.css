@@ -51,7 +51,7 @@
 }
 
 /* ------------------------------------------------------------------ *
- * akaVST — dark-first, minimal-modern theme.
+ * akaVST dark-first, minimal-modern theme.
  * Near-black warm-neutral canvas; product accents pop against it.
  * Brand accent defaults can be overridden per-page with an inline
  * --brand / --brand-foreground on a section wrapper.
@@ -128,6 +128,44 @@
   }
   .text-pretty {
     text-wrap: pretty;
+  }
+  /* thin vertical-gradient display text (Apple-ish).
+     NOTE: use background-image, not the `background` shorthand, which
+     resets background-clip back to border-box and breaks the text clip. */
+  .text-gradient {
+    background-image: linear-gradient(
+      180deg,
+      oklch(0.99 0 0) 0%,
+      oklch(0.72 0.008 285) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* foreground bleeding into the active brand accent */
+  .text-gradient-brand {
+    background-image: linear-gradient(
+      110deg,
+      oklch(0.99 0 0) 35%,
+      var(--brand) 110%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* faint CRT scanline wash, used sparingly behind chrome */
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      0deg,
+      oklch(1 0 0 / 3.5%) 0px,
+      oklch(1 0 0 / 3.5%) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  /* digital tracking for monospace labels */
+  .tracking-digital {
+    letter-spacing: 0.18em;
   }
   /* fine grid background */
   .bg-grid {

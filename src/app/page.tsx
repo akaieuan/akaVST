@@ -3,6 +3,7 @@ import { ArrowRight, Cpu, Zap, ShieldCheck } from "lucide-react";
 import { PLUGINS } from "@/lib/plugins";
 import { PluginCard } from "@/components/plugin-card";
 import { ButtonLink } from "@/components/button-link";
+import { GradientText } from "@/components/gradient-text";
 import {
   Accordion,
   AccordionContent,
@@ -30,28 +31,29 @@ function Hero() {
     <section className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 brand-glow opacity-70" />
       <div className="pointer-events-none absolute inset-0 bg-grid mask-fade-b opacity-30" />
-      <div className="relative mx-auto max-w-6xl px-5 pb-20 pt-20 sm:px-8 sm:pb-28 sm:pt-28">
+      <div className="pointer-events-none absolute inset-0 scanlines opacity-50 mask-fade-b" />
+      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-24 sm:px-8 sm:pb-32 sm:pt-32">
         <div className="mx-auto max-w-3xl text-center">
           <Link
             href="#plugins"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-3 py-1 text-xs text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/40 px-3 py-1 font-mono text-[11px] font-light uppercase tracking-digital text-muted-foreground backdrop-blur transition-colors hover:text-foreground"
           >
-            <span className="inline-block size-1.5 rounded-full bg-[var(--brand)]" />
-            {PLUGINS.length} instruments available now
+            <span className="inline-block size-1.5 rounded-full bg-[var(--brand)] motion-safe:animate-pulse" />
+            {PLUGINS.length} instruments · macOS · native
           </Link>
 
-          <h1 className="mt-6 text-balance text-5xl font-semibold tracking-tighter sm:text-7xl">
-            Instruments built to be{" "}
-            <span className="text-muted-foreground">performed.</span>
+          <h1 className="mt-7 text-balance text-5xl font-light leading-[0.95] tracking-tighter sm:text-7xl">
+            <GradientText>Instruments built</GradientText>
+            <br />
+            <GradientText variant="brand">to be performed.</GradientText>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            Hand-built synths and samplers for macOS — acid, lo-fi, and
-            sculpting. VST3, AU, and Standalone. Native Apple Silicon. No
-            subscriptions, no nonsense.
+          <p className="mx-auto mt-7 max-w-lg text-pretty text-lg font-light leading-relaxed text-muted-foreground">
+            Synths and samplers for macOS, built to be played live. Native on
+            Apple Silicon. No subscriptions.
           </p>
 
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <ButtonLink size="lg" className="rounded-full" href="#plugins">
               Browse plugins
               <ArrowRight className="size-4" />
@@ -59,10 +61,10 @@ function Hero() {
             <ButtonLink
               size="lg"
               variant="ghost"
-              className="rounded-full text-muted-foreground"
+              className="rounded-full font-mono text-xs font-light uppercase tracking-digital text-muted-foreground"
               href="#about"
             >
-              Why aka?
+              About
             </ButtonLink>
           </div>
         </div>
@@ -95,7 +97,7 @@ function Why() {
     {
       icon: Cpu,
       title: "Native Apple Silicon",
-      body: "Universal binaries that pass auval and run native on M-series or Intel — no Rosetta tax, correct tail and latency reporting.",
+      body: "Universal binaries that pass auval and run native on M-series or Intel. No Rosetta tax, with correct tail and latency reporting.",
     },
     {
       icon: Zap,
@@ -118,7 +120,7 @@ function Why() {
                 <it.icon className="size-5 text-[var(--brand)]" />
               </div>
               <h3 className="text-base font-medium">{it.title}</h3>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <p className="text-sm font-light leading-relaxed text-muted-foreground">
                 {it.body}
               </p>
             </div>
@@ -138,18 +140,18 @@ function About() {
           title="One person, building the tools they wanted to play."
           align="left"
         />
-        <div className="space-y-5 text-pretty text-base leading-relaxed text-muted-foreground">
-          {/* PLACEHOLDER — replace with your real story */}
+        <div className="space-y-5 text-pretty text-base font-light leading-relaxed text-muted-foreground">
+          {/* PLACEHOLDER copy, swap for your real story */}
           <p>
             aka is a small studio making instruments for the kind of music
-            where one mutating line is the track. Every plugin is built in
-            JUCE and C++, designed to be dialled in fast and performed live
-            rather than clicked together from a rack of utilities.
+            where one mutating line is the track. Every plugin is built in JUCE
+            and C++, designed to be dialled in fast and performed live rather
+            than clicked together from a rack of utilities.
           </p>
           <p>
             No telemetry, no cloud, no subscription. You buy it, you download
-            it, it&apos;s yours. This page is a placeholder — swap in your own
-            story whenever you&apos;re ready.
+            it, it is yours. This page is a placeholder, so swap in your own
+            story whenever you are ready.
           </p>
         </div>
       </div>
@@ -165,19 +167,19 @@ function Faq() {
     },
     {
       q: "How does delivery work?",
-      a: "After checkout you're taken straight to a download page — no account needed. You also get an email with a backup download link.",
+      a: "After checkout you are taken straight to a download page, no account needed. You also get an email with a backup download link.",
     },
     {
       q: "Do I need a license key?",
-      a: "No. Purchases are download-only — install and play. (Placeholder answer; update if this changes.)",
+      a: "No. Purchases are download-only, so you just install and play. (Placeholder answer; update if this changes.)",
     },
     {
-      q: "What's your refund policy?",
+      q: "What is your refund policy?",
       a: "Because these are instantly-downloadable digital goods, sales are generally final. See the refund policy page for details.",
     },
     {
       q: "Will there be a Windows version?",
-      a: "Currently macOS only. Placeholder — update with your roadmap.",
+      a: "Currently macOS only. Placeholder answer, update with your roadmap.",
     },
   ];
   return (
@@ -187,10 +189,10 @@ function Faq() {
         <Accordion className="mt-10 w-full">
           {faqs.map((f, i) => (
             <AccordionItem key={i} value={`item-${i}`}>
-              <AccordionTrigger className="text-left text-base">
+              <AccordionTrigger className="text-left text-base font-normal">
                 {f.q}
               </AccordionTrigger>
-              <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+              <AccordionContent className="text-sm font-light leading-relaxed text-muted-foreground">
                 {f.a}
               </AccordionContent>
             </AccordionItem>
@@ -207,10 +209,13 @@ function CtaStrip() {
       <div className="relative mx-auto max-w-6xl overflow-hidden px-5 py-24 text-center sm:px-8">
         <div className="pointer-events-none absolute inset-0 brand-glow opacity-60" />
         <div className="relative">
-          <h2 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <GradientText
+            as="h2"
+            className="text-balance text-3xl font-light tracking-tight sm:text-4xl"
+          >
             Find your next sound.
-          </h2>
-          <p className="mx-auto mt-4 max-w-md text-muted-foreground">
+          </GradientText>
+          <p className="mx-auto mt-4 max-w-md font-light text-muted-foreground">
             Three instruments, one-time purchase, instant download.
           </p>
           <ButtonLink size="lg" className="mt-8 rounded-full" href="#plugins">
@@ -236,13 +241,15 @@ function SectionHeading({
 }) {
   return (
     <div className={align === "center" ? "mx-auto max-w-2xl text-center" : "max-w-md"}>
-      <p className="text-xs font-medium uppercase tracking-widest text-[var(--brand)]">
+      <p className="font-mono text-[11px] font-light uppercase tracking-digital text-[var(--brand)]">
         {eyebrow}
       </p>
-      <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+      <h2 className="mt-4 text-balance text-3xl font-light tracking-tight sm:text-4xl">
         {title}
       </h2>
-      {desc && <p className="mt-4 text-pretty text-muted-foreground">{desc}</p>}
+      {desc && (
+        <p className="mt-4 text-pretty font-light text-muted-foreground">{desc}</p>
+      )}
     </div>
   );
 }

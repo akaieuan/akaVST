@@ -4,11 +4,11 @@ import { env } from "@/lib/env";
 /**
  * Time-limited, tamper-proof download tokens.
  *
- * A token encodes the plugin slug + an expiry, signed with DOWNLOAD_SECRET.
+ * A token encodes the plugin slug plus an expiry, signed with DOWNLOAD_SECRET.
  * After a successful purchase we mint one and hand it to the buyer; the
  * /api/download/[token] route verifies it before issuing a signed R2 URL.
  *
- * Stateless by design — no database needed for download-only delivery.
+ * Stateless by design, no database needed for download-only delivery.
  */
 
 type TokenPayload = { slug: string; exp: number };

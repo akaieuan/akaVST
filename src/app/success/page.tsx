@@ -27,7 +27,7 @@ export default async function SuccessPage({ searchParams }: SearchParams) {
               <CheckCircle2 className="size-7 text-[var(--brand)]" />
             </div>
             <h1 className="mt-6 text-3xl font-semibold tracking-tight">
-              Thank you — you&apos;re all set.
+              Thank you, you&apos;re all set.
             </h1>
             <p className="mt-3 text-pretty text-muted-foreground">
               Your copy of{" "}

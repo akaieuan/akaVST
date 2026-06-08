@@ -7,6 +7,7 @@ import { getPlugin, pluginSlugs, PLUGINS, type Plugin } from "@/lib/plugins";
 import { BuyButton } from "@/components/buy-button";
 import { PluginCard } from "@/components/plugin-card";
 import { PluginArtwork } from "@/components/plugin-artwork";
+import { GradientText } from "@/components/gradient-text";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
@@ -21,7 +22,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const plugin = getPlugin(slug);
   if (!plugin) return {};
   return {
-    title: `${plugin.name} — ${plugin.category}`,
+    title: `${plugin.name} · ${plugin.category}`,
     description: plugin.description,
   };
 }
@@ -86,9 +87,13 @@ function Hero({ plugin, available }: { plugin: Plugin; available: boolean }) {
               </span>
             </div>
 
-            <h1 className="mt-5 text-balance text-5xl font-semibold tracking-tighter sm:text-6xl">
+            <GradientText
+              as="h1"
+              variant="brand"
+              className="mt-5 text-balance text-5xl font-light tracking-tighter sm:text-6xl"
+            >
               {plugin.name}
-            </h1>
+            </GradientText>
             <p className="mt-5 max-w-md text-pretty text-lg leading-relaxed text-muted-foreground">
               {plugin.tagline}
             </p>
@@ -174,7 +179,7 @@ function Features({ plugin }: { plugin: Plugin }) {
   return (
     <section className="border-b border-border">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
-        <h2 className="text-balance text-3xl font-semibold tracking-tight">
+        <h2 className="text-balance text-3xl font-light tracking-tight">
           What&apos;s inside
         </h2>
         <div className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
@@ -201,7 +206,7 @@ function SignalFlow({ plugin }: { plugin: Plugin }) {
   return (
     <section className="border-b border-border bg-card/30">
       <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <h2 className="text-xs font-medium uppercase tracking-widest text-[var(--brand)]">
+        <h2 className="font-mono text-[11px] font-light uppercase tracking-digital text-[var(--brand)]">
           Signal flow
         </h2>
         <div className="mt-6 overflow-x-auto rounded-xl border border-border bg-background p-5">
@@ -218,7 +223,7 @@ function Gallery({ plugin }: { plugin: Plugin }) {
   return (
     <section className="border-b border-border">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
-        <h2 className="text-balance text-3xl font-semibold tracking-tight">
+        <h2 className="text-balance text-3xl font-light tracking-tight">
           A closer look
         </h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
@@ -256,7 +261,7 @@ function Presets({ plugin }: { plugin: Plugin }) {
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-24">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-balance text-3xl font-semibold tracking-tight">
+            <h2 className="text-balance text-3xl font-light tracking-tight">
               {count > 0 ? `${count} factory presets` : "Factory presets"}
             </h2>
             <p className="mt-3 max-w-lg text-pretty text-muted-foreground">{note}</p>
@@ -284,7 +289,7 @@ function BuyCta({ plugin, available }: { plugin: Plugin; available: boolean }) {
         <div className="pointer-events-none absolute inset-0 brand-glow opacity-60" />
         <div className="relative">
           <p className="font-mono text-sm text-muted-foreground">{plugin.platform}</p>
-          <h2 className="mt-3 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
+          <h2 className="mt-3 text-balance text-3xl font-light tracking-tight sm:text-4xl">
             Get {plugin.name}
           </h2>
           <p className="mx-auto mt-3 max-w-sm text-muted-foreground">
@@ -308,7 +313,7 @@ function MorePlugins({ others }: { others: Plugin[] }) {
     <section>
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8">
         <div className="flex items-end justify-between">
-          <h2 className="text-2xl font-semibold tracking-tight">More from aka</h2>
+          <h2 className="text-2xl font-light tracking-tight">More from aka</h2>
           <Link
             href="/#plugins"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
