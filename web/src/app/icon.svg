@@ -1,9 +1,10 @@
 <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <!-- The rack glyph: a panel with a display bar and a step row knocked out.
-       Keep in sync with inRackGlyph() in components/site/PixelRack.tsx. -->
+  <!-- The chrome mark: a panel with a display bar and a step row knocked out,
+       one step lit violet. Keep in sync with the chrome device in
+       components/site/rack/chrome.ts, which lights the second step. -->
   <style>
-    .mark { fill: #17181a; }
-    @media (prefers-color-scheme: dark) { .mark { fill: #eeefec; } }
+    .panel { fill: #17181a; }
+    @media (prefers-color-scheme: dark) { .panel { fill: #eeefec; } }
   </style>
   <mask id="knockout">
     <rect width="32" height="32" rx="7" fill="#fff" />
@@ -16,5 +17,7 @@
       <rect x="22.2" y="19" width="2.8" height="5.5" rx="0.8" />
     </g>
   </mask>
-  <rect class="mark" width="32" height="32" rx="7" mask="url(#knockout)" />
+  <rect class="panel" width="32" height="32" rx="7" mask="url(#knockout)" />
+  <!-- The lit step. Violet reads on both grounds, so it is not themed. -->
+  <rect x="10.8" y="19" width="2.8" height="5.5" rx="0.8" fill="#9b7cf0" />
 </svg>

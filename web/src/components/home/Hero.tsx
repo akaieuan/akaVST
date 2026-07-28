@@ -55,7 +55,7 @@ export function Hero() {
 
       {/* The mark: assembles once on first view, then runs its idle motion. */}
       <div className={cn("mx-auto hidden md:block", reveal)} style={stagger(2)}>
-        <PixelRack size={360} ratio={0.62} grid={40} mode="engines" once fluid />
+        <PixelRack size={360} ratio={0.62} grid={40} mode="collection" accent="violet" once fluid />
       </div>
     </section>
   );
