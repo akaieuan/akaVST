@@ -58,16 +58,18 @@ export default async function PluginPage({
       <main className="mx-auto max-w-5xl px-6 md:px-8">
         <PluginHero entry={entry} />
 
-        <WhyItExists paragraphs={entry.why} />
+        <WhyItExists heading={entry.headings.why} paragraphs={entry.why} />
         <DeepDive sections={entry.deepDive} />
-        <FeatureGrid features={entry.features} />
+        <FeatureGrid heading={entry.headings.features} features={entry.features} />
 
-        {entry.signalFlow && <SignalFlow diagram={entry.signalFlow} />}
-        <Gallery items={entry.gallery} />
-        {entry.presets && <Presets presets={entry.presets} />}
+        {entry.signalFlow && (
+          <SignalFlow heading={entry.headings.signalFlow} diagram={entry.signalFlow} />
+        )}
+        <Gallery heading={entry.headings.gallery} items={entry.gallery} />
+        {entry.presets && <Presets heading={entry.headings.presets} presets={entry.presets} />}
 
-        <Specs entry={entry} />
-        <State state={entry.state} />
+        <Specs heading={entry.headings.specs} entry={entry} />
+        <State heading={entry.headings.state} state={entry.state} />
 
         {/* No buy button, no download. The page ends on what it is and where
             it stands, and points at the other two. */}

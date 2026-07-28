@@ -2,15 +2,15 @@ import { Hairline } from "@/components/site/Hairline";
 
 const POINTS = [
   {
-    heading: "One window, not a rack",
+    heading: "The wiring is the problem",
     body: "Each of these exists because the thing it does was possible already, and miserable. Wiring a synth to a sequencer to a fistful of utilities gets you an acid line; it does not get you something you can perform. The instrument is the part where the wiring disappears.",
   },
   {
-    heading: "Character over emulation",
+    heading: "A reference, not a spec",
     body: "None of these model a specific circuit. Enzyme evokes the Protein's lo-fi bite with bitcrush, sample-rate reduction and waveshaping rather than reproducing a wavetable engine. The reference is a target, not a spec.",
   },
   {
-    heading: "Shipped states, honestly",
+    heading: "Version numbers you can check",
     body: "These are at v0.1, v0.4 and v1.0, and the pages say so. What is finished is listed, what is queued is listed, and where a README overpromises against the build, the build wins.",
   },
 ];

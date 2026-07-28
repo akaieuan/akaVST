@@ -30,5 +30,15 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  // iCloud makes "name 2.ts" conflict copies of generated files faster than a
+  // pre-step can delete them, and duplicated .next/types files break the build
+  // with spurious redeclaration errors. Excluding them is race-free.
+  "exclude": [
+    "node_modules",
+    "**/* 2.*",
+    "**/* 3.*",
+    "**/* 4.*",
+    "**/* 5.*",
+    "**/* 6.*"
+  ]
 }

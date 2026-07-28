@@ -1,31 +1,64 @@
-import { blockAt, blockRun, screen } from "./field";
-import { NO_MOVE, type DeviceFactory } from "./types";
+import { screen } from "./field";
+import { NO_MOVE, type AccentCell, type DeviceFactory } from "./types";
 
 /**
- * The chrome mark: the board's face, held still. Used in the nav, the dropdown
- * and the favicon, so it has to stay legible down to about 26px, where the
- * screen is only a handful of cells across.
+ * The logo: a waveform in a panel, held still.
+ *
+ * Deliberately not any one instrument's device. The board belongs to
+ * akaBleep, so using it as the collection's mark said the wrong thing. Five
+ * bars of a fixed waveform say "audio" without claiming to be a particular
+ * synth, and the tallest bar carries the violet the hero paints in.
+ *
+ * The silhouette is a constant, not a hash: a logo has to be the same shape
+ * every time it is drawn, at every size it is drawn at. Only the amplitude
+ * scale changes with the panel, so this reads the same at 26px in the nav as
+ * it does blown up on the brand pages.
+ *
+ * Keep in sync with app/icon.svg.
  */
+
+/** Bar heights as a fraction of the half-height available. */
+const WAVE = [0.45, 1, 0.3, 0.75, 0.55];
+/** Which bar carries the accent. The peak. */
+const LIT = 1;
+
 export const chrome: DeviceFactory = (cols, rows) => {
   const s = screen(cols, rows);
-  const run = blockRun(s);
 
-  const displayH = Math.max(1, Math.round(s.h * 0.2));
-  const barY1 = s.y0 + displayH - 1;
-  const stepH = Math.max(2, Math.round(s.h * 0.3));
-  const stepY0 = s.y1 - stepH + 1;
+  const pitch = Math.max(2, Math.floor((s.w + 1) / WAVE.length));
+  const barW = Math.max(1, pitch - 1);
+  const span = WAVE.length * pitch - (pitch - barW);
+  const x0 = s.x0 + Math.floor((s.w - span) / 2);
+
+  const mid = (s.y0 + s.y1) / 2;
+  const maxAmp = Math.max(1, Math.floor((s.h - 1) / 2));
+
+  const bars = WAVE.map((h, k) => ({
+    x0: x0 + k * pitch,
+    x1: x0 + k * pitch + barW - 1,
+    amp: Math.max(1, Math.round(maxAmp * h)),
+  }));
 
   return {
     carve(i, j) {
-      if (j >= s.y0 && j <= barY1 && i > s.x0 && i < s.x1) return true;
-      if (j >= stepY0 && j <= s.y1) return blockAt(i, run) >= 0;
+      for (const bar of bars) {
+        if (i < bar.x0 || i > bar.x1) continue;
+        return Math.abs(j - mid) <= bar.amp;
+      }
       return false;
     },
     idle() {
       return NO_MOVE;
     },
     overlay() {
-      return [];
+      const out: AccentCell[] = [];
+      const bar = bars[LIT];
+      for (let i = bar.x0; i <= bar.x1; i++) {
+        for (let j = Math.ceil(mid - bar.amp); j <= Math.floor(mid + bar.amp); j++) {
+          out.push({ i, j });
+        }
+      }
+      return out;
     },
     signature() {
       return "chrome";

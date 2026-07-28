@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { board } from "./board";
 import { chrome } from "./chrome";
+import { collection } from "./collection";
 import { engines } from "./engines";
 import { keys } from "./keys";
 import {
@@ -30,7 +31,7 @@ import type { AccentCell, Cell, DeviceFactory } from "./types";
  * closures over their geometry; this file never knows what any of them are.
  */
 
-export type RackMode = "board" | "keys" | "engines" | "chrome";
+export type RackMode = "board" | "keys" | "engines" | "chrome" | "collection";
 
 /** Accent tokens from globals.css. One per plugin, spent inside the mark. */
 export type RackAccent = "rose" | "blue" | "amber" | "violet" | "green";
@@ -40,6 +41,7 @@ const DEVICES: Record<RackMode, DeviceFactory> = {
   keys,
   engines,
   chrome,
+  collection,
 };
 
 type PixelRackProps = {

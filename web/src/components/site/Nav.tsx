@@ -15,7 +15,7 @@ export function Nav({ active }: { active?: NavActive }) {
       <div className="mx-auto flex h-12 max-w-5xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 md:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           {/* The chrome mark: the panel glyph, held still. */}
-          <PixelRack size={26} ratio={0.78} grid={13} mode="chrome" gap={0.14} still />
+          <PixelRack size={26} ratio={0.78} grid={13} mode="chrome" accent="violet" gap={0.14} still />
           {/* Nothing in this bar shrinks, so below 375px the wordmark is what
               gives way: the mark beside it already stands in for it. */}
           <span className="hidden text-sm font-light tracking-[0.06em] text-foreground min-[375px]:inline">

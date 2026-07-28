@@ -11,7 +11,7 @@ export function Hero() {
   return (
     <section className="grid grid-cols-1 items-center gap-12 py-24 md:grid-cols-[1fr_auto] md:py-32">
       <div>
-        <span className={cn("label block", reveal)}>Instruments · by akaieuan</span>
+        <span className={cn("label block", reveal)}>Three instruments · macOS · by akaieuan</span>
         <h1
           className={cn(
             "mt-6 max-w-xl text-lg leading-snug font-light tracking-tight md:text-2xl",
@@ -19,16 +19,15 @@ export function Hero() {
           )}
           style={stagger(1)}
         >
-          Three instruments, built one at a time, documented as they go
-          <span className="text-[color:var(--accent-amber)]">.</span>
+          An acid box, a four-layer synth, and a sampler that eats its own output
+          <span className="text-[color:var(--accent-violet)]">.</span>
         </h1>
         <p
           className={cn("mt-5 max-w-md leading-relaxed text-muted-foreground", reveal)}
           style={stagger(2)}
         >
-          An acid voice wrapped around a 64-step sequencer, a four-layer lo-fi synth
-          sharing one voice pool, and a sampler that resamples itself. JUCE and C++17,
-          for macOS.
+          Built one at a time, in the open, and documented as they go. Every version
+          number on this site is read out of the plugin that shipped it.
         </p>
 
         <div
@@ -39,7 +38,7 @@ export function Hero() {
             See the collection
             <ArrowUpRight aria-hidden className={arrowNudge} />
           </a>
-          <Link href="/colophon" className={arrowLink}>
+          <Link href="/demo" className={arrowLink}>
             How this is built
             <ArrowUpRight aria-hidden className={arrowNudge} />
           </Link>
@@ -55,7 +54,7 @@ export function Hero() {
 
       {/* The mark: assembles once on first view, then runs its idle motion. */}
       <div className={cn("mx-auto hidden md:block", reveal)} style={stagger(2)}>
-        <PixelRack size={360} ratio={0.62} grid={40} mode="engines" once fluid />
+        <PixelRack size={360} ratio={0.62} grid={40} mode="collection" accent="violet" once fluid />
       </div>
     </section>
   );

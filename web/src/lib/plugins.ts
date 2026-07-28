@@ -29,6 +29,19 @@ export interface Plugin {
   specs: { label: string; value: string }[];
   /** Honest status: what works today, what is queued. */
   state: { shipping: string[]; next: string[] };
+  /**
+   * Section headings. The mono kicker keeps the structural label, so each of
+   * these is a claim about this instrument rather than the name of a slot.
+   */
+  headings: {
+    why: string;
+    features: string;
+    signalFlow: string;
+    gallery: string;
+    presets: string;
+    specs: string;
+    state: string;
+  };
   /** One accent, spent on a single dot. Everything else is greyscale. */
   accent: PluginAccent;
   /** Which idle motion the mark runs. */
@@ -183,6 +196,15 @@ export const PLUGINS: Plugin[] = [
         "A branded plugin icon, replacing the stock JUCE one",
       ],
     },
+    headings: {
+      why: "One acid line, mutating over sixteen bars, is the track.",
+      features: "Forty parameters, lockable per step.",
+      signalFlow: "Two oscillators in. One ruined bleep out.",
+      gallery: "Eight themes ship. This is Magenta.",
+      presets: "Thirty-nine patches, and somewhere to keep your own.",
+      specs: "Eighty-one parameters, and the codes your DAW files it under.",
+      state: "v0.4.0, and not yet notarised.",
+    },
     accent: "rose",
     mark: "board",
     repo: "https://github.com/akaieuan/akaBleep-VST",
@@ -288,6 +310,15 @@ export const PLUGINS: Plugin[] = [
         "Per-parameter smoothing in the voice",
       ],
     },
+    headings: {
+      why: "Four timbres. Eight voices. One instrument.",
+      features: "Everything that makes it sound like a table, not a laptop.",
+      signalFlow: "One voice, four times over.",
+      gallery: "Nothing captured yet.",
+      presets: "Eighteen patches, exposed to the host as programs.",
+      specs: "Frozen parameter IDs, so today's presets still open next year.",
+      state: "v1.0.0, and specific about what is still missing.",
+    },
     accent: "blue",
     mark: "keys",
     repo: "https://github.com/akaieuan/akaEnzyme-VST",
@@ -390,6 +421,15 @@ export const PLUGINS: Plugin[] = [
         "The factory sample library",
         "More than five factory presets",
       ],
+    },
+    headings: {
+      why: "One sample, run through everything, then fed back to the start.",
+      features: "Five engines, and a matrix sitting over all of them.",
+      signalFlow: "Tape in. Resampled back onto a pad.",
+      gallery: "Nothing captured yet.",
+      presets: "Five, for now.",
+      specs: "Seven pages and seventy-six parameters.",
+      state: "v0.1.0, the youngest and the largest.",
     },
     accent: "amber",
     mark: "engines",

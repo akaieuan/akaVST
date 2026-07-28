@@ -8,9 +8,13 @@ export const BRAND = {
   author: "akaieuan",
 } as const;
 
+/**
+ * Header links. The brand system lives at /demo and is reachable from the
+ * footer instead: useful while building, noise for anyone who came to read
+ * about a synth.
+ */
 export const NAV_LINKS = [
   { href: "/plugins", key: "plugins", label: "Plugins" },
-  { href: "/colophon", key: "colophon", label: "Colophon" },
 ] as const;
 
 export type NavActive = (typeof NAV_LINKS)[number]["key"];
