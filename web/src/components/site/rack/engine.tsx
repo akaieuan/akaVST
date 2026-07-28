@@ -256,13 +256,10 @@ export function PixelRack({
      */
     const drawAccents = (list: AccentCell[]) => {
       if (!accentColor || list.length === 0) return;
+      // Clear exactly the cell, not a halo around it: an accent cell should
+      // read as replacing one pixel of the panel, not blowing a hole in it.
       for (const a of list) {
-        ctx.clearRect(
-          a.i * cellW - cellW * 0.5,
-          a.j * cellH - cellH * 0.5,
-          cellW * 2,
-          cellH * 2,
-        );
+        ctx.clearRect(a.i * cellW, a.j * cellH, cellW, cellH);
       }
       ctx.fillStyle = accentColor;
       for (const a of list) {
