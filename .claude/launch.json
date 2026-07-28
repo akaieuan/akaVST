@@ -4,7 +4,7 @@
     {
       "name": "akavst",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["dev"],
+      "runtimeArgs": ["--dir", "web", "dev"],
       "port": 3000,
       "autoPort": true
     }

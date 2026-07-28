@@ -1,0 +1,29 @@
+{
+  "slug": "bleep",
+  "version": "0.4.0",
+  "productName": "akaBleep",
+  "company": "akaieuan",
+  "bundleId": "com.akaieuan.akableep",
+  "pluginCode": "Blep",
+  "manufacturerCode": "Akeu",
+  "formats": [
+    "VST3",
+    "AU",
+    "Standalone"
+  ],
+  "categories": [
+    "Instrument",
+    "Synth"
+  ],
+  "minMacOS": "11.0",
+  "universal": true,
+  "platform": "macOS 11.0+ · Apple Silicon and Intel",
+  "commit": "05a5d674b9ebe0bedaebb8759b265342eb9f83bc",
+  "screenshots": [
+    "/plugins/bleep/akableep-ui.png",
+    "/plugins/bleep/fx-chain.png",
+    "/plugins/bleep/patchbay.png",
+    "/plugins/bleep/presets.png",
+    "/plugins/bleep/sequencer.png"
+  ]
+}
