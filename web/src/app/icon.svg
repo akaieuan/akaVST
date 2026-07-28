@@ -1,0 +1,20 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- The rack glyph: a panel with a display bar and a step row knocked out.
+       Keep in sync with inRackGlyph() in components/site/PixelRack.tsx. -->
+  <style>
+    .mark { fill: #17181a; }
+    @media (prefers-color-scheme: dark) { .mark { fill: #eeefec; } }
+  </style>
+  <mask id="knockout">
+    <rect width="32" height="32" rx="7" fill="#fff" />
+    <rect x="7" y="7.5" width="18" height="5.5" rx="1" fill="#000" />
+    <g fill="#000">
+      <rect x="7" y="19" width="2.8" height="5.5" rx="0.8" />
+      <rect x="10.8" y="19" width="2.8" height="5.5" rx="0.8" />
+      <rect x="14.6" y="19" width="2.8" height="5.5" rx="0.8" />
+      <rect x="18.4" y="19" width="2.8" height="5.5" rx="0.8" />
+      <rect x="22.2" y="19" width="2.8" height="5.5" rx="0.8" />
+    </g>
+  </mask>
+  <rect class="mark" width="32" height="32" rx="7" mask="url(#knockout)" />
+</svg>

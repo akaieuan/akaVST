@@ -1,0 +1,23 @@
+{
+  "slug": "enzyme",
+  "version": "1.0.0",
+  "productName": "Enzyme",
+  "company": "akaieuan",
+  "bundleId": "com.akaieuan.enzyme",
+  "pluginCode": "Enzy",
+  "manufacturerCode": "Akie",
+  "formats": [
+    "VST3",
+    "AU",
+    "Standalone"
+  ],
+  "categories": [
+    "Instrument",
+    "Synth"
+  ],
+  "minMacOS": "11.0",
+  "universal": true,
+  "platform": "macOS 11.0+ · Apple Silicon and Intel",
+  "commit": "c60dea9a95ca448a084e7e2ebac27c641784f737",
+  "screenshots": []
+}

@@ -1,0 +1,23 @@
+{
+  "slug": "i4",
+  "version": "0.1.0",
+  "productName": "i4",
+  "company": "akaieuan",
+  "bundleId": "com.akaieuan.i4",
+  "pluginCode": "Ak4i",
+  "manufacturerCode": "Akae",
+  "formats": [
+    "VST3",
+    "AU",
+    "Standalone"
+  ],
+  "categories": [
+    "Instrument",
+    "Sampler"
+  ],
+  "minMacOS": "11.0",
+  "universal": false,
+  "platform": "macOS 11.0+ · Apple Silicon",
+  "commit": "a5316532524be34add8386026ad928cfe5dae949",
+  "screenshots": []
+}

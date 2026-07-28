@@ -1,61 +1,84 @@
-# akaVST — storefront
+# akaVST
 
-The storefront for the **aka** plugin collection — akaBleep, akaEnzyme, and i4.
-Next.js (App Router) · Tailwind v4 · shadcn/ui · Stripe · Cloudflare R2.
+A living collection of the **aka** audio plugins, plus the site that documents them.
 
-This repo is **standalone**. It does not contain or depend on the plugin source
-code. The plugin projects (`akaBleep-VST`, `akaEnzyme-VST`, `akaI4-VST`) stay in
-their own repos. The only things the store needs from them are:
+Three JUCE instruments, each its own repository, tracked here as submodules so they can be worked on
+side by side and still push to their own remotes.
 
-1. **One packaged installer per plugin** (a zipped `.vst3`/`.component` or a `.dmg`),
-   uploaded to a private Cloudflare R2 bucket.
-2. **Product metadata** — which lives here in [`src/lib/plugins.ts`](src/lib/plugins.ts).
-
-## How a sale works (download-only)
+| | | |
+|---|---|---|
+| [**akaBleep**](bleep) | acid voice + 64-step P-lock sequencer | [akaBleep-VST](https://github.com/akaieuan/akaBleep-VST) |
+| [**Enzyme**](enzyme) | 4-layer lo-fi multi-timbral synth | [akaEnzyme-VST](https://github.com/akaieuan/akaEnzyme-VST) |
+| [**i4**](i4) | sculpting sampler | [akaI4-VST](https://github.com/akaieuan/akaI4-VST) |
 
 ```
-Buyer clicks Buy
-  → POST /api/checkout          creates a Stripe Checkout Session
-  → Stripe hosted checkout       (Stripe Tax handles VAT/sales tax)
-  → /success?session_id=...      verifies payment, mints a signed 24h token
-  → /api/download/[token]        verifies token → 302 to a 5-min presigned R2 URL
+akaVST/
+├── web/        the site — Next.js App Router, Tailwind v4, akaSTYLE
+├── bleep/      submodule
+├── enzyme/     submodule
+├── i4/         submodule
+└── scripts/    cross-repo helpers
 ```
 
-No accounts, no license keys, no database. Tokens are stateless HMACs.
-
-## Getting it running
+## Getting set up
 
 ```bash
+git clone --recurse-submodules https://github.com/akaieuan/akaVST.git
+```
+
+Already cloned without them:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Working across the repos
+
+Each plugin directory is a full checkout of its own repository, so the normal workflow is unchanged:
+`cd bleep`, commit, `git push`, and it lands in akaBleep-VST. The parent records *which* commit of
+each plugin it currently describes.
+
+`scripts/vst.sh` covers the spans and the one chore that is easy to forget:
+
+```bash
+./scripts/vst.sh status                  # working tree + ahead/behind for all three
+./scripts/vst.sh pull                    # fast-forward every plugin
+./scripts/vst.sh push                    # push every plugin that is ahead
+./scripts/vst.sh sync                    # restage parent pointers after a plugin moves
+./scripts/vst.sh foreach git log --oneline -3
+```
+
+The order that matters: **push the plugin first, then `sync` and commit the parent.** A parent commit
+pointing at an unpushed plugin commit is the one submodule failure mode worth remembering.
+
+## The site
+
+```bash
+cd web
 pnpm install
-cp .env.example .env.local   # fill in when ready (site runs without it)
 pnpm dev
 ```
 
-Open http://localhost:3000. With no env vars, the site renders fully and Buy
-buttons show **"coming soon"** (no `priceId` set).
+Runs with no environment variables. See [`web/README.md`](web/README.md).
 
-## Going live — the checklist
+Plugin facts on the site (versions, formats, plugin codes, platform) are derived from each
+submodule's `CMakeLists.txt` rather than retyped:
 
-1. **Stripe**: create a Product + Price per plugin → paste each Price ID into the
-   `priceId` field in `src/lib/plugins.ts`. Add `STRIPE_SECRET_KEY` to env.
-   Enable **Stripe Tax** in the dashboard. Add a webhook → `/api/stripe/webhook`
-   and set `STRIPE_WEBHOOK_SECRET`.
-2. **R2**: create a private bucket, upload one installer per plugin, and set the
-   object keys in `plugins.ts` (`downloadKey`). Add the four `R2_*` env vars.
-3. **DOWNLOAD_SECRET**: `openssl rand -hex 32`.
-4. **Screenshots**: drop real UI shots in `public/plugins/<slug>/` and wire them
-   into the card/hero (currently placeholder artwork).
-5. **Copy**: replace placeholder taglines/descriptions/about/FAQ/legal text.
-6. Deploy (Vercel). Set the same env vars there + `NEXT_PUBLIC_SITE_URL`.
+```bash
+cd web && pnpm sync:facts
+```
 
-## Adding a 4th plugin
+That writes `web/src/content/plugins/*.generated.json` and copies any new screenshots out of the
+plugin repos. The output is committed, so the production build never reads the submodules.
 
-Add one entry to `PLUGINS` in `src/lib/plugins.ts`. The card, product page,
-footer link, and routing all generate from it.
+## Deploying
 
-## The release pipeline (optional, later)
+Vercel project settings: **Root Directory** must be `web`.
 
-Each plugin repo can cut a tagged GitHub Release via CI that builds, signs,
-notarizes, and uploads the installer to R2. The store reads the version for
-display; GitHub Releases is the changelog / version source of truth. None of
-this is required to launch — you can upload installers to R2 by hand.
+Vercel clones submodules by default, so its GitHub App also needs read access to `akaBleep-VST`,
+`akaEnzyme-VST`, and `akaI4-VST` or the clone step fails before the build starts.
+
+## Licence
+
+The plugin repositories are proprietary; see each one's own `LICENSE`. The site is not licensed for
+reuse.
