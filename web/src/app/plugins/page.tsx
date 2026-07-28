@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { ACCENT_COLORS } from "@/lib/plugins";
 import { PLUGIN_ENTRIES, statusLine } from "@/lib/plugin-facts";
 import { arrowNudge, cardSurface } from "@/components/home/shared";
@@ -41,7 +41,7 @@ export default function PluginsPage() {
                 className={cn(cardSurface, "grid grid-cols-1 gap-5 p-6 sm:grid-cols-[auto_1fr]")}
               >
                 <div className="shrink-0">
-                  <PixelRack size={168} ratio={0.62} grid={26} mode={p.mark} once />
+                  <PixelRack size={168} ratio={0.62} grid={26} mode={p.mark} accent={p.accent} once />
                 </div>
 
                 <div className="min-w-0">

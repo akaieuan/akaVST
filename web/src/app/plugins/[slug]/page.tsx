@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { Hairline } from "@/components/site/Hairline";
 import { PLUGINS, ACCENT_COLORS } from "@/lib/plugins";
 import { PLUGIN_ENTRIES, getPluginEntry } from "@/lib/plugin-facts";
@@ -85,7 +85,7 @@ export default async function PluginPage({
                   />
                   <h2 className="text-lg font-light tracking-tight text-foreground">{p.name}</h2>
                   <span className="ml-auto flex items-center gap-3">
-                    <PixelRack size={44} ratio={0.62} grid={16} mode={p.mark} once />
+                    <PixelRack size={44} ratio={0.62} grid={16} mode={p.mark} accent={p.accent} once />
                     <ArrowUpRight
                       aria-hidden
                       className={cn(

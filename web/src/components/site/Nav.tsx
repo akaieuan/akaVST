@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BRAND, NAV_LINKS, type NavActive } from "@/lib/brand";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 import { PLUGIN_ENTRIES } from "@/lib/plugin-facts";
 
@@ -15,7 +15,7 @@ export function Nav({ active }: { active?: NavActive }) {
       <div className="mx-auto flex h-12 max-w-5xl items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6 md:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
           {/* The chrome mark: the panel glyph, held still. */}
-          <PixelRack size={26} ratio={0.78} grid={13} mode="rack" gap={0.14} still />
+          <PixelRack size={26} ratio={0.78} grid={13} mode="chrome" gap={0.14} still />
           {/* Nothing in this bar shrinks, so below 375px the wordmark is what
               gives way: the mark beside it already stands in for it. */}
           <span className="hidden text-sm font-light tracking-[0.06em] text-foreground min-[375px]:inline">
@@ -44,7 +44,7 @@ export function Nav({ active }: { active?: NavActive }) {
                     className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted"
                   >
                     <span className="mt-1 shrink-0 text-foreground">
-                      <PixelRack size={28} ratio={0.7} grid={14} mode={p.mark} gap={0.14} still />
+                      <PixelRack size={28} ratio={0.7} grid={14} mode={p.mark} accent={p.accent} gap={0.14} still />
                     </span>
                     <span className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-[13px] font-normal tracking-normal text-foreground">

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
-import { PixelRack, type RackMode } from "@/components/site/PixelRack";
+import { PixelRack, type RackMode } from "@/components/site/rack";
 import { Hairline } from "@/components/site/Hairline";
 import { BRAND } from "@/lib/brand";
 
@@ -13,24 +13,24 @@ export const metadata: Metadata = {
 
 const MARKS: { mode: RackMode; name: string; note: string }[] = [
   {
-    mode: "step",
-    name: "step",
+    mode: "board",
+    name: "board",
     note: "A playhead sweeps the step row, and a sparse set of locks lifts behind it. akaBleep.",
   },
   {
-    mode: "layers",
-    name: "layers",
+    mode: "keys",
+    name: "keys",
     note: "Four bars shearing against each other at unrelated rates. Enzyme.",
   },
   {
-    mode: "grain",
-    name: "grain",
+    mode: "engines",
+    name: "engines",
     note: "A window travelling along a waveform, with a read head plucking grains off its edge. i4.",
   },
   {
-    mode: "rack",
-    name: "rack",
-    note: "The step panel, held still. The chrome mark and the favicon.",
+    mode: "chrome",
+    name: "chrome",
+    note: "The board's face, held still. The nav mark and the favicon.",
   },
 ];
 

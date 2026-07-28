@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { ACCENT_COLORS } from "@/lib/plugins";
 import { statusLine, type PluginEntry } from "@/lib/plugin-facts";
 
@@ -40,7 +40,7 @@ export function PluginHero({ entry }: { entry: PluginEntry }) {
       </div>
 
       <div className="mx-auto hidden md:block">
-        <PixelRack size={300} ratio={0.62} grid={36} mode={entry.mark} once fluid />
+        <PixelRack size={300} ratio={0.62} grid={36} mode={entry.mark} accent={entry.accent} once fluid />
       </div>
     </section>
   );

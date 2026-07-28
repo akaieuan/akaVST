@@ -1,8 +1,9 @@
-import type { RackMode } from "@/components/site/PixelRack";
+import type { RackAccent, RackMode } from "@/components/site/rack";
 
 export type PluginSlug = "bleep" | "enzyme" | "i4";
 
-export type PluginAccent = "blue" | "amber" | "rose" | "violet" | "green";
+/** The accent tokens the mark can paint with, so the two cannot drift apart. */
+export type PluginAccent = RackAccent;
 
 export interface Plugin {
   slug: PluginSlug;
@@ -183,7 +184,7 @@ export const PLUGINS: Plugin[] = [
       ],
     },
     accent: "rose",
-    mark: "step",
+    mark: "board",
     repo: "https://github.com/akaieuan/akaBleep-VST",
   },
   {
@@ -288,7 +289,7 @@ export const PLUGINS: Plugin[] = [
       ],
     },
     accent: "blue",
-    mark: "layers",
+    mark: "keys",
     repo: "https://github.com/akaieuan/akaEnzyme-VST",
   },
   {
@@ -391,7 +392,7 @@ export const PLUGINS: Plugin[] = [
       ],
     },
     accent: "amber",
-    mark: "grain",
+    mark: "engines",
     repo: "https://github.com/akaieuan/akaI4-VST",
   },
 ];

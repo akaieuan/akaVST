@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { ACCENT_COLORS } from "@/lib/plugins";
 import { PLUGIN_ENTRIES, statusLine } from "@/lib/plugin-facts";
 import { arrowNudge, cardSurface } from "./shared";
@@ -27,7 +27,7 @@ export function CollectionGrid() {
             </div>
 
             <div className="mt-4">
-              <PixelRack size={280} ratio={0.5} grid={32} mode={p.mark} once fluid />
+              <PixelRack size={280} ratio={0.5} grid={32} mode={p.mark} accent={p.accent} once fluid />
             </div>
 
             <p className="mt-4 text-sm leading-relaxed text-foreground/80">{p.oneLiner}</p>

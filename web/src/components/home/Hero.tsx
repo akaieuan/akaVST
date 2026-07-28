@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PixelRack } from "@/components/site/PixelRack";
+import { PixelRack } from "@/components/site/rack";
 import { PLUGIN_ENTRIES } from "@/lib/plugin-facts";
 import { arrowLink, arrowNudge, primaryCta, reveal, stagger } from "./shared";
 
@@ -55,7 +55,7 @@ export function Hero() {
 
       {/* The mark: assembles once on first view, then runs its idle motion. */}
       <div className={cn("mx-auto hidden md:block", reveal)} style={stagger(2)}>
-        <PixelRack size={360} ratio={0.62} grid={40} mode="grain" once fluid />
+        <PixelRack size={360} ratio={0.62} grid={40} mode="engines" once fluid />
       </div>
     </section>
   );
