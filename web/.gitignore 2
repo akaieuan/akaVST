@@ -39,7 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# iCloud conflict copies. This tree sits under a synced Desktop, and iCloud
-# makes "name 2.ext" duplicates of anything a build regenerates.
-* [0-9].*

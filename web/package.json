@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "clean:conflicts": "find . -name '* [0-9].*' -not -path './node_modules/*' -delete",
+    "typecheck": "pnpm clean:conflicts && tsc --noEmit",
     "sync:facts": "node --experimental-strip-types scripts/sync-plugin-facts.mts",
     "verify": "pnpm typecheck && pnpm lint && pnpm build"
   },
