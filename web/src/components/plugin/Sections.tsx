@@ -4,20 +4,44 @@ import { cardSurface } from "@/components/home/shared";
 import type { Plugin } from "@/lib/plugins";
 import type { PluginEntry } from "@/lib/plugin-facts";
 
-/** Section heading in the house idiom: light, tight, ends on a full stop. */
-function Heading({ children, meta }: { children: React.ReactNode; meta?: string }) {
+/**
+ * Section heading in the house idiom: the mono kicker keeps the structural
+ * label so the page stays scannable, and the heading underneath says something
+ * specific about this instrument. A heading that only names its own slot
+ * ("Signature features.") is a heading doing no work.
+ */
+function Heading({
+  kicker,
+  meta,
+  children,
+}: {
+  kicker: string;
+  meta?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="mb-6 flex items-baseline justify-between gap-4">
-      <h2 className="text-2xl font-light tracking-tight text-foreground">{children}</h2>
-      {meta && <span className="label shrink-0">{meta}</span>}
+    <div className="mb-7">
+      <div className="flex items-baseline justify-between gap-4">
+        <p className="label">{kicker}</p>
+        {meta && <span className="label shrink-0">{meta}</span>}
+      </div>
+      <h2 className="mt-3 max-w-2xl text-2xl leading-snug font-light tracking-tight text-foreground">
+        {children}
+      </h2>
     </div>
   );
 }
 
-export function WhyItExists({ paragraphs }: { paragraphs: string[] }) {
+export function WhyItExists({
+  heading,
+  paragraphs,
+}: {
+  heading: string;
+  paragraphs: string[];
+}) {
   return (
     <section className="pb-16">
-      <Heading>Why it exists.</Heading>
+      <Heading kicker="Why it exists">{heading}</Heading>
       <div className="flex max-w-2xl flex-col gap-5">
         {paragraphs.map((para, i) => (
           <p key={i} className="leading-relaxed text-muted-foreground">
@@ -54,10 +78,18 @@ export function DeepDive({ sections }: { sections: Plugin["deepDive"] }) {
   );
 }
 
-export function FeatureGrid({ features }: { features: Plugin["features"] }) {
+export function FeatureGrid({
+  heading,
+  features,
+}: {
+  heading: string;
+  features: Plugin["features"];
+}) {
   return (
     <section className="pb-16">
-      <Heading meta={`${features.length} features`}>Signature features.</Heading>
+      <Heading kicker="What it does" meta={`${features.length} of them`}>
+        {heading}
+      </Heading>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <div key={feature.title} className={cn(cardSurface, "flex flex-col gap-2 p-5")}>
@@ -72,10 +104,12 @@ export function FeatureGrid({ features }: { features: Plugin["features"] }) {
   );
 }
 
-export function SignalFlow({ diagram }: { diagram: string }) {
+export function SignalFlow({ heading, diagram }: { heading: string; diagram: string }) {
   return (
     <section className="pb-16">
-      <Heading meta="from the repo">Signal flow.</Heading>
+      <Heading kicker="Signal flow" meta="from the repo">
+        {heading}
+      </Heading>
       <div className="rounded-2xl border border-border/40 bg-card/40 p-5">
         <pre className="signal-flow">{diagram}</pre>
       </div>
@@ -83,11 +117,13 @@ export function SignalFlow({ diagram }: { diagram: string }) {
   );
 }
 
-export function Gallery({ items }: { items: Plugin["gallery"] }) {
+export function Gallery({ heading, items }: { heading: string; items: Plugin["gallery"] }) {
   if (items.length === 0) return null;
   return (
     <section className="pb-16">
-      <Heading meta={`${items.length} views`}>The interface.</Heading>
+      <Heading kicker="The interface" meta={`${items.length} views`}>
+        {heading}
+      </Heading>
       <div className="flex flex-col gap-8">
         {items.map((item, i) => (
           <figure key={item.src}>
@@ -112,10 +148,18 @@ export function Gallery({ items }: { items: Plugin["gallery"] }) {
   );
 }
 
-export function Presets({ presets }: { presets: NonNullable<Plugin["presets"]> }) {
+export function Presets({
+  heading,
+  presets,
+}: {
+  heading: string;
+  presets: NonNullable<Plugin["presets"]>;
+}) {
   return (
     <section className="pb-16">
-      <Heading meta={`${presets.count} factory`}>Presets.</Heading>
+      <Heading kicker="Presets" meta={`${presets.count} factory`}>
+        {heading}
+      </Heading>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
         {presets.note}
       </p>
@@ -133,7 +177,7 @@ export function Presets({ presets }: { presets: NonNullable<Plugin["presets"]> }
   );
 }
 
-export function Specs({ entry }: { entry: PluginEntry }) {
+export function Specs({ heading, entry }: { heading: string; entry: PluginEntry }) {
   const { facts } = entry;
   const rows: { label: string; value: string }[] = [
     { label: "Version", value: `v${facts.version}` },
@@ -148,7 +192,9 @@ export function Specs({ entry }: { entry: PluginEntry }) {
 
   return (
     <section className="pb-16">
-      <Heading meta={`from ${facts.commit.slice(0, 7)}`}>Specifications.</Heading>
+      <Heading kicker="Specifications" meta={`read from ${facts.commit.slice(0, 7)}`}>
+        {heading}
+      </Heading>
       <dl className="flex flex-col">
         {rows.map((row) => (
           <div
@@ -168,10 +214,10 @@ export function Specs({ entry }: { entry: PluginEntry }) {
   );
 }
 
-export function State({ state }: { state: Plugin["state"] }) {
+export function State({ heading, state }: { heading: string; state: Plugin["state"] }) {
   return (
     <section className="pb-16">
-      <Heading>Where it is.</Heading>
+      <Heading kicker="Where it is">{heading}</Heading>
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
         <div>
           <p className="label mb-4">Shipping</p>
