@@ -38,7 +38,7 @@ export function Hero() {
             See the collection
             <ArrowUpRight aria-hidden className={arrowNudge} />
           </a>
-          <Link href="/colophon" className={arrowLink}>
+          <Link href="/demo" className={arrowLink}>
             How this is built
             <ArrowUpRight aria-hidden className={arrowNudge} />
           </Link>

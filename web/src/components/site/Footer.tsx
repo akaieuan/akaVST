@@ -37,10 +37,10 @@ export function Footer() {
             <ul className="mt-3 flex flex-col gap-2">
               <li>
                 <Link
-                  href="/colophon"
+                  href="/demo"
                   className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Colophon
+                  Brand system
                 </Link>
               </li>
               <li>
