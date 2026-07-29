@@ -144,7 +144,13 @@ void LookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int 
     const auto bounds = juce::Rectangle<int> (x, y, w, h).toFloat();
     const bool vertical = style == juce::Slider::LinearVertical
                        || style == juce::Slider::LinearBarVertical;
-    const auto thickness = juce::jmax (3.0f, (vertical ? bounds.getWidth() : bounds.getHeight()) * 0.22f);
+    const float across = vertical ? bounds.getWidth() : bounds.getHeight();
+
+    // A hairline track, not a bar. Proportional-but-capped, the same rule the
+    // rotary arc follows: a fader is a line with a position on it, and once the
+    // line is thick enough to have a fill and a shadow it has become a
+    // thermometer. Fifteen of these side by side is where that shows.
+    const float thickness = juce::jlimit (2.0f, trackThickness, across * 0.10f);
 
     auto track = vertical ? bounds.withSizeKeepingCentre (thickness, bounds.getHeight())
                           : bounds.withSizeKeepingCentre (bounds.getWidth(), thickness);
@@ -162,16 +168,21 @@ void LookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int 
     g.setColour (fill);
     g.fillRoundedRectangle (filled, thickness * 0.5f);
 
-    // The thumb. Without it a linear slider reads as a progress bar — you can
-    // see the value but not that it is draggable, and there is nothing to aim
-    // at. JUCE's default draws one; anything replacing it has to as well.
-    const float thumbSize = thickness * 2.0f;
+    // The cap: a short bar across the track, not a knob on top of it. Something
+    // has to say "this is draggable" and mark the exact value, but a circle wide
+    // enough to grab is several times the width of the line it rides, and reads
+    // as hardware bolted to the panel. A tick is the same information at a
+    // fraction of the weight.
+    const float capAcross = juce::jmin (across * 0.62f, thickness * 5.0f);
+    const float capAlong = 3.0f;
     const auto centre = vertical ? juce::Point<float> (track.getCentreX(), sliderPos)
                                  : juce::Point<float> (sliderPos, track.getCentreY());
-    const auto thumb = juce::Rectangle<float> (thumbSize, thumbSize).withCentre (centre);
+    const auto cap = vertical
+        ? juce::Rectangle<float> (capAcross, capAlong).withCentre (centre)
+        : juce::Rectangle<float> (capAlong, capAcross).withCentre (centre);
 
     g.setColour (colourFor (slider, juce::Slider::thumbColourId, Palette::textHi()));
-    g.fillRoundedRectangle (thumb, thumbSize * 0.35f);
+    g.fillRoundedRectangle (cap, capAlong * 0.5f);
 }
 
 void LookAndFeel::drawComboBox (juce::Graphics& g, int width, int height, bool,
@@ -228,19 +239,38 @@ void LookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& button,
     // its own id. Ignoring both would look like a working reskin and quietly
     // flatten every deliberately-coloured button — a bypass that went red, a
     // transport that went green — into one accent.
-    auto fill = on ? colourFor (button, juce::TextButton::buttonOnColourId, Palette::accentBase())
-                   : backgroundColour;
+    const auto stateColour = colourFor (button, juce::TextButton::buttonOnColourId,
+                                        Palette::accentBase());
 
-    if (isDown)             fill = fill.contrasting (0.08f);
-    else if (isHighlighted) fill = fill.brighter (0.15f);
+    // Accent is punctuation, not fill. An engaged control is a dark chip with a
+    // lit edge and lit text, the way the site spends an instrument's colour on a
+    // single dot rather than a block. Filling the whole button is what makes a
+    // plugin look a decade old: it turns every state into a slab and leaves the
+    // panel a patchwork of coloured rectangles instead of a surface with a few
+    // things lit on it.
+    auto fill = on ? stateColour.withAlpha (0.16f) : backgroundColour;
+
+    if (isDown)             fill = fill.contrasting (0.06f);
+    else if (isHighlighted) fill = fill.brighter (0.10f);
 
     g.setColour (fill);
     g.fillRoundedRectangle (bounds, cornerRadius);
 
-    // Depth is a border, never a shadow. An on-state borders in its own fill so
-    // it reads as one solid block rather than a chip inside a frame.
-    g.setColour (on ? fill : Palette::divider());
-    g.drawRoundedRectangle (bounds, cornerRadius, hairline);
+    // Off states carry no outline at all. A hairline around every control is the
+    // other half of the boxed-in look; the fill is already enough separation
+    // against the panel, and what is left reads as surface rather than as a grid
+    // of frames.
+    if (on)
+    {
+        g.setColour (stateColour.withAlpha (0.75f));
+        g.drawRoundedRectangle (bounds, cornerRadius, hairline);
+
+        // The dot: one lit mark that says which control is live, readable at a
+        // glance across a dense panel without colouring the panel.
+        const float r = 2.0f;
+        g.setColour (stateColour);
+        g.fillEllipse (bounds.getX() + 6.0f, bounds.getCentreY() - r, r * 2.0f, r * 2.0f);
+    }
 }
 
 void LookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& button,
@@ -248,11 +278,21 @@ void LookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& button,
 {
     const bool on = button.getToggleState();
 
+    // An engaged button now sits on a tinted chip rather than a solid accent
+    // block, so its label takes the accent itself. textColourOnId is deliberately
+    // not consulted here: it holds "text that reads on a filled accent", which is
+    // near-black, and on the new chip that is invisible.
+    const auto stateColour = colourFor (button, juce::TextButton::buttonOnColourId,
+                                        Palette::accentBase());
+
     g.setFont (getTextButtonFont (button, button.getHeight()));
-    g.setColour (on ? colourFor (button, juce::TextButton::textColourOnId, Palette::textOnAccent())
+    g.setColour (on ? stateColour
                     : colourFor (button, juce::TextButton::textColourOffId,
                                  isHighlighted ? Palette::textHi() : Palette::textDim()));
-    g.drawFittedText (button.getButtonText(), button.getLocalBounds(),
+
+    // Leave room for the state dot so the label stays optically centred whether
+    // or not one is lit.
+    g.drawFittedText (button.getButtonText(), button.getLocalBounds().withTrimmedLeft (on ? 8 : 0),
                       juce::Justification::centred, 1, 0.9f);
 }
 

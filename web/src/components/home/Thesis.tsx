@@ -2,8 +2,8 @@ import { Hairline } from "@/components/site/Hairline";
 
 const POINTS = [
   {
-    heading: "The wiring is the problem",
-    body: "Each of these exists because the thing it does was possible already, and miserable. Wiring a synth to a sequencer to a fistful of utilities gets you an acid line; it does not get you something you can perform. The instrument is the part where the wiring disappears.",
+    heading: "Possible was never the problem",
+    body: "Each of these could be built from a rack of plugins and enough clicking. i4 drops thirty seconds of its own output onto a pad, back at the top of the chain; you could rig that from a bus and a sampler and never play it live. One window you can perform is the job.",
   },
   {
     heading: "A reference, not a spec",

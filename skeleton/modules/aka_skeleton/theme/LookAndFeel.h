@@ -89,6 +89,16 @@ public:
         redesign. 2.2px keeps it a hairline at every size.
     */
     static constexpr float maxArcThickness = 2.2f;
+
+    /**
+        Ceiling on a linear slider's track.
+
+        Same argument as the arc. A fader is a line with a position on it; a
+        track thick enough to carry a fill and a cap has become a thermometer,
+        and fifteen thermometers side by side is a control panel from a decade
+        ago.
+    */
+    static constexpr float trackThickness = 4.0f;
 };
 
 } // namespace aka

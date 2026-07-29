@@ -217,9 +217,19 @@ run_one() {
     local others
     others="$(find "$dir" -maxdepth 1 -name '*.app' | wc -l | tr -d ' ')"
 
+    # Time the EXECUTABLE, not the bundle directory. A .app's mtime only moves
+    # when entries are added to or removed from it, so relinking in place leaves
+    # the directory reading hours old while the binary inside is a minute old.
+    # Reporting that stale number is precisely the lie this command exists to
+    # prevent, so read the Mach-O that will actually run.
+    local exe
+    exe="$app/Contents/MacOS/$(/usr/libexec/PlistBuddy -c 'Print CFBundleExecutable' \
+                                 "$app/Contents/Info.plist" 2>/dev/null)"
+    [ -f "$exe" ] || exe="$app"
+
     bold "$p — launching $cfg build"
     dim "  $app"
-    dim "  built $(date -r "$app" '+%Y-%m-%d %H:%M:%S')"
+    dim "  built $(date -r "$exe" '+%Y-%m-%d %H:%M:%S')"
     [ "$others" -gt 1 ] && dim "  ($((others - 1)) older bundle(s) alongside it — stale, ignored)"
     open "$app"
     return 0

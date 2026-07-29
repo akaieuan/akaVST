@@ -23,22 +23,28 @@ endif()
 
 juce_add_module(${CMAKE_CURRENT_SOURCE_DIR}/modules/aka_skeleton ALIAS_NAMESPACE aka)
 
-# A target that compiles the module and nothing else, so `cmake --build . ` is a
-# real check rather than a configure-time no-op. Consumers ignore this.
-add_library(aka_skeleton_compile_check STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/modules/aka_skeleton/aka_skeleton.cpp)
+# A target that compiles the module and nothing else, so `cmake --build .` on
+# skeleton alone is a real check rather than a configure-time no-op.
+#
+# Only when skeleton is the top-level project. A consumer adding this as a
+# subdirectory already compiles the module into its own target, and a second
+# copy would just be a slower build and a stray library in their tree.
+if(PROJECT_IS_TOP_LEVEL)
+    add_library(aka_skeleton_compile_check STATIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/modules/aka_skeleton/aka_skeleton.cpp)
 
-target_link_libraries(aka_skeleton_compile_check
-    PRIVATE
-        aka_skeleton
-        juce::juce_gui_basics
-        juce::juce_audio_processors
-    PUBLIC
-        juce::juce_recommended_config_flags
-        juce::juce_recommended_warning_flags)
+    target_link_libraries(aka_skeleton_compile_check
+        PRIVATE
+            aka_skeleton
+            juce::juce_gui_basics
+            juce::juce_audio_processors
+        PUBLIC
+            juce::juce_recommended_config_flags
+            juce::juce_recommended_warning_flags)
 
-target_compile_definitions(aka_skeleton_compile_check PRIVATE
-    JUCE_WEB_BROWSER=0
-    JUCE_USE_CURL=0
-    JUCE_STANDALONE_APPLICATION=0
-    JUCE_MODULE_AVAILABLE_aka_skeleton=1)
+    target_compile_definitions(aka_skeleton_compile_check PRIVATE
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_STANDALONE_APPLICATION=0
+        JUCE_MODULE_AVAILABLE_aka_skeleton=1)
+endif()
