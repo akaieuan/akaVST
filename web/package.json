@@ -11,7 +11,9 @@
     "clean:conflicts": "find . -name '* [0-9].*' -not -path './node_modules/*' -delete",
     "typecheck": "pnpm clean:conflicts && tsc --noEmit",
     "sync:facts": "node --experimental-strip-types scripts/sync-plugin-facts.mts",
-    "verify": "pnpm typecheck && pnpm lint && pnpm build"
+    "sync:tokens": "node --experimental-strip-types scripts/sync-design-tokens.mts",
+    "check:tokens": "node --experimental-strip-types scripts/sync-design-tokens.mts --check",
+    "verify": "pnpm typecheck && pnpm lint && pnpm check:tokens && pnpm build"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

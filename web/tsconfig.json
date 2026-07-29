@@ -9,6 +9,10 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // The design-token source is imported both by the app and by a node script
+    // run with --experimental-strip-types, whose ESM resolver requires the
+    // extension. Safe here because noEmit is on.
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
