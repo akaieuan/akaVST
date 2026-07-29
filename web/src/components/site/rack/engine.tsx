@@ -117,13 +117,14 @@ export function PixelRack({
     // theme rather than behind a var() indirection.
     let fg = "";
     let accentColor = "";
+    let panelGrey = "";
+    let screenGrey = "";
     const readColors = () => {
       fg = getComputedStyle(host).color;
-      accentColor = accent
-        ? getComputedStyle(document.documentElement)
-            .getPropertyValue(`--accent-${accent}`)
-            .trim()
-        : "";
+      const root = getComputedStyle(document.documentElement);
+      accentColor = accent ? root.getPropertyValue(`--accent-${accent}`).trim() : "";
+      panelGrey = root.getPropertyValue("--mark-panel").trim();
+      screenGrey = root.getPropertyValue("--mark-screen").trim();
     };
     readColors();
 
@@ -189,6 +190,17 @@ export function PixelRack({
       }
     }
 
+    // The carve is needed twice per frame — once to lay the substrate, once to
+    // skip the pixel over it — so it runs once into this scratch buffer and
+    // both passes read it. Allocated here, never per frame.
+    const carved = new Uint8Array(cells.length);
+    const carveAll = (hold: number) => {
+      for (let k = 0; k < cells.length; k++) {
+        const c = cells[k]!;
+        carved[k] = c.interior && device.carve(c.i, c.j, hold) ? 1 : 0;
+      }
+    };
+
     /* ---- timeline (seconds) ------------------------------------------- */
     const HOLD = 9;
     const DISSOLVE = 1.9;
@@ -197,7 +209,7 @@ export function PixelRack({
     const TOTAL = HOLD + DISSOLVE + GONE + REFORM;
     const SPREAD = 0.55;
 
-    const drawCell = (c: Cell, t: number, hold: number) => {
+    const drawCell = (c: Cell, t: number, hold: number, isCarved: boolean) => {
       // t: 0 assembled, 1 fully dissolved. `hold` drives idle motion at t=0.
       let x = c.x;
       let y = c.y;
@@ -206,7 +218,7 @@ export function PixelRack({
 
       // The device's face is carved every frame, including mid-reform, so the
       // shape is already there as the panel lands rather than popping in.
-      if (c.interior && device.carve(c.i, c.j, hold)) return;
+      if (isCarved) return;
 
       if (t <= 0) {
         const [dx, dy] = device.idle(c, hold);
@@ -263,6 +275,14 @@ export function PixelRack({
       for (const a of list) {
         ctx.clearRect(a.i * cellW, a.j * cellH, cellW, cellH);
       }
+      // The clear takes the substrate with it, so lay the plate back down
+      // underneath. Without this each accent punches through to the card.
+      if (panelGrey) {
+        ctx.fillStyle = panelGrey;
+        for (const a of list) {
+          ctx.fillRect(a.i * cellW, a.j * cellH, cellW, cellH);
+        }
+      }
       ctx.fillStyle = accentColor;
       for (const a of list) {
         ctx.globalAlpha = a.alpha ?? 1;
@@ -271,11 +291,52 @@ export function PixelRack({
       ctx.globalAlpha = 1;
     };
 
+    /**
+     * The plate the pixels sit on, painted under them.
+     *
+     * Without it the carved face, the gaps between pixels and the ground
+     * outside the panel outline are all the same transparency, so the card
+     * shows through each of them equally and the mark stops reading as a
+     * device. A CSS background cannot do this: only the canvas knows which
+     * cells are carved. Panel grey fills the whole cell, so it shows in the
+     * gaps and binds the grid into one chassis; screen grey fills the carved
+     * face. Two passes rather than one, so fillStyle is set twice per frame
+     * instead of once per cell.
+     *
+     * It fades out with the dissolve. A plate holding still behind a panel
+     * that is glitching apart would be worse than no plate at all.
+     */
+    const drawSubstrate = (t: number) => {
+      const a = 1 - clamp01(t);
+      if (a <= 0.01) return;
+      ctx.globalAlpha = a;
+      if (panelGrey) {
+        ctx.fillStyle = panelGrey;
+        for (let k = 0; k < cells.length; k++) {
+          if (carved[k]) continue;
+          const c = cells[k]!;
+          ctx.fillRect(c.x, c.y, cellW, cellH);
+        }
+      }
+      if (screenGrey) {
+        ctx.fillStyle = screenGrey;
+        for (let k = 0; k < cells.length; k++) {
+          if (!carved[k]) continue;
+          const c = cells[k]!;
+          ctx.fillRect(c.x, c.y, cellW, cellH);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+
     const paint = (t: number, hold: number) => {
       ctx.clearRect(0, 0, W, H);
+      carveAll(hold);
+      drawSubstrate(t);
       ctx.fillStyle = fg;
-      for (const c of cells) {
-        drawCell(c, clamp01(t * (1 + SPREAD) - c.delay * SPREAD), hold);
+      for (let k = 0; k < cells.length; k++) {
+        const c = cells[k]!;
+        drawCell(c, clamp01(t * (1 + SPREAD) - c.delay * SPREAD), hold, carved[k] === 1);
       }
       ctx.globalAlpha = 1;
       if (t <= 0) drawAccents(device.overlay(hold));

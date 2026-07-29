@@ -3,12 +3,31 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* @generated-tokens-start — `pnpm sync:tokens` owns everything to the matching
+   end marker. Source: src/design/tokens.ts. Hand edits here are reverted by the
+   next run and caught by `pnpm check:tokens`. */
+
 /* ── Tokens ──────────────────────────────────────────────────────────────
    akaSTYLE, shared with akaOSS. Light is the "warm paper" theme, .dark the
    "warm near-black" default. Hierarchy comes from alpha, not hue: every
    surface sits on the same 107 hue at near-zero chroma, so nothing reads
    tinted. The five accents are punctuation, never fills. On this site each
-   plugin owns exactly one of them and spends it on a single status dot. */
+   plugin owns exactly one of them and spends it on a single status dot.
+
+   The light accents are derived, not picked. sRGB's gamut ceiling swings
+   wildly by hue at a fixed lightness — at L=0.52 violet allows a chroma of
+   0.286 and amber only 0.110 — so raising all five by hand puts three of them
+   outside the gamut. They hold one lightness and take
+
+       C = min(0.19, 0.93 * sRGB gamut ceiling at that L and hue)
+
+   The 0.93 keeps each hue just inside its own ceiling; the 0.19 cap stops
+   violet and rose, whose gamuts are enormous, from screaming next to amber,
+   which has no room to answer. Re-derive rather than nudge: a hand-tuned value
+   here is a value that clips somewhere.
+
+   The dark accents predate that rule and sit below their ceilings on purpose —
+   against near-black, less chroma reads as more. They are left alone. */
 
 /* Light theme: warm paper. */
 :root {
@@ -33,11 +52,11 @@
   --input: oklch(0.19 0.005 107 / 18%);
   --ring: oklch(0.48 0.004 107);
 
-  --accent-blue: oklch(0.55 0.19 259);
-  --accent-green: oklch(0.5 0.09 152);
-  --accent-amber: oklch(0.62 0.13 75);
-  --accent-rose: oklch(0.58 0.16 15);
-  --accent-violet: oklch(0.52 0.15 295);
+  --accent-blue: oklch(0.52 0.188 259);
+  --accent-green: oklch(0.52 0.127 152);
+  --accent-amber: oklch(0.52 0.102 75);
+  --accent-rose: oklch(0.52 0.19 15);
+  --accent-violet: oklch(0.52 0.19 295);
 
   --radius: 0.625rem;
 
@@ -48,6 +67,15 @@
   --hairline: oklch(0.19 0.01 95 / 8%);
   --radius-card: 1.0625rem;
   --radius-pill: 0.5rem;
+
+  /* The mark's chassis. PixelRack paints only pixels, so without these the
+     carved device face, the gaps between pixels and the area outside the panel
+     all show the same card fill and the device stops reading as a device.
+     --mark-panel fills every sampled cell, so it shows in the gaps and binds
+     the grid into one plate; --mark-screen fills the carved cells. On paper the
+     screen is the darker of the two, because it is recessed. */
+  --mark-panel: oklch(0.19 0.01 95 / 6%);
+  --mark-screen: oklch(0.19 0.01 95 / 12%);
 }
 
 /* Dark theme: warm near-black. Site default. */
@@ -84,7 +112,15 @@
   --card-border: oklch(1 0 0 / 6%);
   --card-border-hover: oklch(1 0 0 / 10%);
   --hairline: oklch(1 0 0 / 6%);
+
+  /* Inverted here: the ink is white, so the screen is the *lighter* of the two.
+     That is what makes the carved face read as a lit display rather than a
+     hole, and it keeps the dark mark close to what it was before the plate. */
+  --mark-panel: oklch(1 0 0 / 4%);
+  --mark-screen: oklch(1 0 0 / 8%);
 }
+
+/* @generated-tokens-end */
 
 @theme inline {
   --color-background: var(--background);
@@ -117,6 +153,8 @@
   --color-card-border: var(--card-border);
   --color-card-border-hover: var(--card-border-hover);
   --color-hairline: var(--hairline);
+  --color-mark-panel: var(--mark-panel);
+  --color-mark-screen: var(--mark-screen);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);

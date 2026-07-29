@@ -33,6 +33,12 @@ const GROUPS: { id: string; title: string; note: string; tokens: string[] }[] = 
     note: "Punctuation, never fills. Each instrument owns exactly one and spends it inside its own mark; violet belongs to the collection.",
     tokens: ["--accent-rose", "--accent-blue", "--accent-amber", "--accent-violet", "--accent-green"],
   },
+  {
+    id: "marks",
+    title: "Marks",
+    note: "The two greys PixelRack paints under itself: the panel that shows through the gaps between pixels, and the recessed screen behind the carved device face.",
+    tokens: ["--mark-panel", "--mark-screen"],
+  },
 ];
 
 function Swatch({ token, value }: { token: string; value: string }) {
