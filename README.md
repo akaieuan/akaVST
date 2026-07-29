@@ -74,6 +74,7 @@ The largest of the three codebases and the youngest. Currently builds for the ho
 ```
 akaVST/
 ├── web/          the site: Next.js App Router, Tailwind v4, akaSTYLE
+├── skeleton/     the shared design system and widget set (JUCE module)
 ├── bleep/        submodule → akaBleep-VST
 ├── enzyme/       submodule → akaEnzyme-VST
 ├── i4/           submodule → akaI4-VST
@@ -121,6 +122,35 @@ Each plugin directory is a full checkout of its own repository, so the normal wo
 ./scripts/vst.sh foreach git log --oneline -3
 ```
 
+## Building and running them
+
+```bash
+./scripts/vst.sh build                   # all three, Release
+./scripts/vst.sh build bleep skeleton    # just these
+./scripts/vst.sh build --clean bleep     # wipe a stale cache first
+./scripts/vst.sh run all                 # open every Standalone at once
+```
+
+Running several at once is the point rather than a side effect: these are
+ordinary processes, not servers, so nothing collides and each keeps its own
+settings under its own bundle id. Comparing all three side by side is the only
+way to tell whether they read as one family, which is the whole job of a shared
+design system.
+
+A first configure downloads ~150MB of JUCE per plugin; after that it is a no-op.
+Every build also installs into `~/Library/Audio/Plug-Ins/`, because each
+plugin's CMake sets `COPY_PLUGIN_AFTER_BUILD` — so a build immediately changes
+what your DAW loads.
+
+**The failure worth knowing about.** A CMake cache records the absolute path it
+was generated from and refuses to be reused if that path moves. Adopting the
+three plugins as submodules moved all three at once, so every rebuild after that
+failed at configure — and because it fails at *configure*, the previously built
+`.app` just sits there looking fine. akaBleep spent two months that way: the
+binary on disk predated the akaieuan rebrand and still carried a
+`studio.ubik.bleep` bundle id, while the source was perfectly current. `build`
+now detects this and says so; `--clean` fixes it.
+
 **Push the plugin first, then `sync` and commit the parent.** A parent commit pointing at an unpushed
 plugin commit is the one submodule failure mode worth remembering.
 
@@ -161,6 +191,109 @@ being checked out.
 
 Where a README and a build disagree, the build wins. i4's README claims a universal binary; its
 `CMakeLists.txt` does not set `CMAKE_OSX_ARCHITECTURES`, so the site says Apple Silicon.
+
+## Skeleton
+
+**The parts of an aka instrument that are not the instrument.** Palette,
+`LookAndFeel` and widgets, shared so that the next plugin starts at the house
+standard rather than arriving at a fourth interpretation of it.
+
+It exists because three plugins had already produced three answers to the same
+question. bleep carried a `Theme` struct and eight themes, i4 its own `Theme`
+struct and three, and enzyme no theme table at all — just a hardcoded palette
+and a comment saying one could slot in later. All three had a name for "text on
+a bright fill" and no two agreed on it.
+
+```
+skeleton/modules/aka_skeleton/
+├── theme/Tokens.h        generated — the palette, from the site's own source
+├── theme/Theme.h         the active theme and accent
+├── theme/LookAndFeel.*   one LookAndFeel, replacing three
+└── widgets/Knob.h        the house rotary
+```
+
+### The palette is generated, not written
+
+`Tokens.h` is emitted from `web/src/design/tokens.ts` — the same source that
+emits the site's stylesheet. The plugins and the website cannot drift, because
+neither of them owns the colours.
+
+```bash
+cd web && pnpm sync:tokens     # rewrite globals.css and Tokens.h
+cd web && pnpm check:tokens    # fail if either is stale (runs inside pnpm verify)
+```
+
+Two things happen on the way into C++. The five light accents are *derived*
+rather than picked: sRGB's gamut ceiling swings by hue, so a hand-raised chroma
+clips on some hues and not others, and the rule `C = min(0.19, 0.93 × ceiling)`
+keeps all five inside the gamut and still reading as a family. And every
+alpha-over-surface token is flattened against the surface it sits on, because
+CSS can defer a blend to paint time and a `juce::uint32` cannot. That flatten
+happens in gamma-encoded sRGB, not linear light — it is the space browsers and
+canvas actually composite in, and blending in linear drifts visibly light.
+
+### Using it
+
+Skeleton lives in this repository rather than one of its own — it is small, it
+changes with the site's token source, and a fourth repo to hold two headers and
+a `LookAndFeel` earns nothing. Plugins consume it the way they already consume
+JUCE, with a pinned tag:
+
+```cmake
+FetchContent_Declare(akaVST
+    GIT_REPOSITORY https://github.com/akaieuan/akaVST.git
+    GIT_TAG skeleton-v0.1.0
+    GIT_SUBMODULES ""
+    SOURCE_SUBDIR skeleton)
+FetchContent_MakeAvailable(akaVST)
+
+target_link_libraries(YourPlugin PRIVATE aka_skeleton)
+```
+
+`SOURCE_SUBDIR` is what lets a plugin pull one directory out of this repository
+and ignore the rest. Put this block *after* the plugin's own JUCE fetch:
+skeleton only fetches JUCE when it cannot already see it, and reversing the
+order gets you two copies and a confusing pile of duplicate-target errors.
+
+**`GIT_SUBMODULES ""` is not optional.** CMake initialises submodules by
+default, so without it a plugin fetching akaVST also clones bleep, enzyme and i4
+— including the plugin doing the fetching. With it you get a shallow clone of a
+small repository with empty submodule directories, which is all that is wanted.
+
+No submodules to add and no vendored copies to drift: each plugin still clones
+and builds on its own, and a skeleton change is a tag each plugin opts into on
+its own schedule. Tags are prefixed `skeleton-` so they do not collide with any
+future versioning of the site.
+
+Working on skeleton and a plugin at once is the one case that wants a local
+override, which CMake has built in:
+
+```bash
+cmake -B build -DFETCHCONTENT_SOURCE_DIR_AKAVST=/path/to/akaVST
+```
+
+Then pick an accent once and never spend another — the same rule the site
+enforces, where each instrument owns exactly one and spends it on a single
+status dot.
+
+```cpp
+aka::LookAndFeel::setAccent (aka::accentRose);
+```
+
+### Adding a widget
+
+The rule that keeps skeleton from turning back into three vocabularies wearing
+one name: **a widget declares what it needs, and the plugin supplies it.**
+
+`Knob` is the worked example. i4's version reaches directly into `ModDest` and
+`ModMatrix`, which is exactly why it could never leave i4. Skeleton's declares a
+three-method `ModAssignHost` and the plugin implements it, so skeleton offers a
+right-click mod-assign menu without ever learning what a modulation matrix is. A
+plugin with no modulation passes nothing and the submenu disappears.
+
+It is the same move the site's mark makes, where `Device` is four methods and
+the engine never learns what any device is. When a widget wants something
+instrument-specific, add an interface, not an include.
 
 ### The mark
 

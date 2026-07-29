@@ -12,6 +12,14 @@
 #   ./scripts/vst.sh push              push every plugin that is ahead of origin
 #   ./scripts/vst.sh sync              restage parent pointers to each plugin's HEAD
 #   ./scripts/vst.sh foreach <cmd...>  run a command in each plugin repo
+#   ./scripts/vst.sh build [target..]  configure + build (plugins, or `skeleton`)
+#   ./scripts/vst.sh build --clean t   wipe a stale build cache first
+#   ./scripts/vst.sh run <plugin|all>  launch Standalone apps, several at once
+#
+# `build` and `run` exist because a reskin you cannot look at is a reskin you
+# cannot verify. The plugins are native apps, not servers, so they are outside
+# .claude/launch.json — that is for the web dev server, which is the only actual
+# server here.
 
 set -uo pipefail
 
@@ -95,11 +103,139 @@ cmd_foreach() {
   return $failed
 }
 
+# The Standalone target each plugin's CMake produces. Not derivable from the
+# directory name: CMake uses the project() name, which is capitalised and, for
+# bleep, differs from both the directory and the PRODUCT_NAME ("akaBleep").
+target_of() {
+  case "$1" in
+    bleep) echo "Bleep" ;;
+    enzyme) echo "Enzyme" ;;
+    i4) echo "i4" ;;
+    *) echo "" ;;
+  esac
+}
+
+cmd_build() {
+  local clean=0
+  local targets=()
+  for a in "$@"; do
+    case "$a" in
+      --clean) clean=1 ;;
+      *) targets+=("$a") ;;
+    esac
+  done
+  [ "${#targets[@]}" -gt 0 ] || targets=("${PLUGINS[@]}")
+  local failed=0
+
+  for t in "${targets[@]}"; do
+    bold "$t"
+    if [ ! -d "$t" ]; then
+      dim "  no such directory"
+      failed=1
+      continue
+    fi
+
+    # A CMake cache records the absolute source path it was generated from, and
+    # refuses to be reused if that path moved. Moving the plugins into this
+    # parent as submodules invalidated all three at once — and because the
+    # failure is a configure error, the previously-built .app just sits there
+    # looking fine. That is how a binary ends up two months behind its source
+    # with nothing obviously broken, so name it loudly rather than dumping
+    # CMake's wording.
+    local cache="$t/build/CMakeCache.txt"
+    if [ -f "$cache" ]; then
+      local was now
+      was="$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' "$cache")"
+      now="$(cd "$t" && pwd)"
+      if [ -n "$was" ] && [ "$was" != "$now" ]; then
+        if [ "$clean" = "1" ]; then
+          dim "  stale cache from $was — clearing"
+          rm -rf "$t/build"
+        else
+          dim "  STALE BUILD CACHE — nothing has compiled here since the move."
+          dim "    cache was generated from: $was"
+          dim "    source is now at:         $now"
+          dim "    any .app in $t/build is older than that and is NOT your source."
+          dim "    fix: ./scripts/vst.sh build --clean $t   (re-downloads JUCE, a few minutes)"
+          failed=1
+          continue
+        fi
+      fi
+    fi
+
+    # First configure downloads ~150MB of JUCE and takes a while; after that it
+    # is a no-op, so this is safe to run every time.
+    cmake -S "$t" -B "$t/build" -DCMAKE_BUILD_TYPE=Release >/dev/null \
+      || { dim "  configure failed"; failed=1; continue; }
+    cmake --build "$t/build" --config Release \
+      || { dim "  build failed"; failed=1; continue; }
+  done
+  return $failed
+}
+
+cmd_run() {
+  local args=("$@")
+  [ "${#args[@]}" -gt 0 ] || { echo "usage: vst.sh run <bleep|enzyme|i4|all>" >&2; exit 2; }
+  [ "${args[0]}" = "all" ] && args=("${PLUGINS[@]}")
+
+  # Several at once is the point: these are ordinary processes, not servers, so
+  # nothing collides and each keeps its own settings under its own bundle id.
+  # Comparing all three side by side is the only way to tell whether they read
+  # as one family.
+  local failed=0
+  for p in "${args[@]}"; do
+    run_one "$p" || failed=1
+  done
+  return $failed
+}
+
+run_one() {
+  local p="${1:-}"
+  local target
+  target="$(target_of "$p")"
+  [ -n "$target" ] || { echo "unknown plugin: $p" >&2; return 1; }
+
+  # Glob rather than construct the bundle name. The artefacts DIRECTORY uses the
+  # CMake target ("Bleep_artefacts") but the bundle uses PRODUCT_NAME
+  # ("akaBleep.app") — they differ, and they have differed at different times:
+  # pre-rebrand builds left a Bleep.app sitting next to today's akaBleep.app.
+  # Guessing the name finds the wrong one and reports success, which is the
+  # single worst outcome for a tool whose whole job is "show me the new build".
+  #
+  # Release first, then the debug configs, since `build` writes Release.
+  local app
+  for cfg in Release RelWithDebInfo Debug; do
+    local dir="$p/build/${target}_artefacts/$cfg/Standalone"
+    [ -d "$dir" ] || continue
+
+    # Newest first, so a leftover bundle from an older naming scheme loses.
+    app="$(find "$dir" -maxdepth 1 -name '*.app' -print0 2>/dev/null \
+           | xargs -0 -I{} stat -f '%m %N' {} 2>/dev/null \
+           | sort -rn | head -1 | cut -d' ' -f2-)"
+    [ -n "$app" ] || continue
+
+    local others
+    others="$(find "$dir" -maxdepth 1 -name '*.app' | wc -l | tr -d ' ')"
+
+    bold "$p — launching $cfg build"
+    dim "  $app"
+    dim "  built $(date -r "$app" '+%Y-%m-%d %H:%M:%S')"
+    [ "$others" -gt 1 ] && dim "  ($((others - 1)) older bundle(s) alongside it — stale, ignored)"
+    open "$app"
+    return 0
+  done
+
+  echo "no Standalone build found for $p — run: ./scripts/vst.sh build $p" >&2
+  return 1
+}
+
 case "${1:-status}" in
   status) cmd_status ;;
   pull) cmd_pull ;;
   push) cmd_push ;;
   sync) cmd_sync ;;
   foreach) shift; cmd_foreach "$@" ;;
-  *) sed -n '3,16p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
+  build) shift; cmd_build "$@" ;;
+  run) shift; cmd_run "$@" ;;
+  *) sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
 esac
