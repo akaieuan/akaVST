@@ -311,7 +311,11 @@ void PixelRack::paint (juce::Graphics& g)
             g.setColour (panelGrey);
             g.fillRect (ax, ay, cellW, cellH);
 
-            g.setColour (accentColour.withMultipliedAlpha (a.alpha));
+            const auto colour = a.accent >= 0 && a.accent < numAccents
+                              ? juce::Colour (Palette::current().accents[a.accent].base)
+                              : accentColour;
+
+            g.setColour (colour.withMultipliedAlpha (a.alpha));
             g.fillRect (ax + offX, ay + offY, px, px);
         }
     }

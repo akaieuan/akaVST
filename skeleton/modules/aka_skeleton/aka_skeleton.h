@@ -59,5 +59,8 @@
 #include "theme/LookAndFeel.h"
 #include "widgets/Knob.h"
 #include "widgets/RackField.h"
+#include "widgets/RackAnalysis.h"
 #include "widgets/RackDevice.h"
 #include "widgets/PixelRack.h"
+#include "widgets/ModuleReadout.h"
+#include "widgets/EnvelopeDevice.h"

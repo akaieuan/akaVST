@@ -20,11 +20,21 @@ struct RackCell
     float delay;
 };
 
-/** A cell painted in the accent colour, over the top of the panel. */
+/**
+    A cell painted in an accent colour, over the top of the panel.
+
+    `accent` selects which of the theme's accents to use; -1 means the
+    instrument's own, which is what almost everything wants. The exception is a
+    device showing a categorical dimension of the instrument rather than its
+    state — enzyme's four layers, say — where the whole point is telling several
+    things apart. That is not a licence to spend four accents decoratively; it is
+    for data that genuinely has more than one channel.
+*/
 struct RackAccentCell
 {
     int i, j;
     float alpha = 1.0f;
+    int accent = -1;
 };
 
 /**
