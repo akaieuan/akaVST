@@ -147,6 +147,11 @@ void PixelRack::rebuildCells()
     }
 
     carved.assign (cells.size(), 0);
+
+    cellAt.assign ((size_t) (cols * rows), -1);
+    for (size_t k = 0; k < cells.size(); ++k)
+        cellAt[(size_t) (cells[k].j * cols + cells[k].i)] = (int) k;
+
     lastSignature = {};
 }
 
@@ -290,6 +295,13 @@ void PixelRack::paint (juce::Graphics& g)
 
         for (const auto& a : accents)
         {
+            // Only where the panel actually is. A device addresses the grid and
+            // has no idea which cells the outline kept, so anything it places in
+            // a corner the sampling dropped would paint outside the silhouette
+            // and read as a block that has escaped the screen.
+            if (a.i < 0 || a.i >= cols || a.j < 0 || a.j >= rows) continue;
+            if (cellAt[(size_t) (a.j * cols + a.i)] < 0) continue;
+
             const float ax = (float) a.i * cellW;
             const float ay = (float) a.j * cellH;
 

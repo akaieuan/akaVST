@@ -85,6 +85,15 @@ private:
     std::vector<RackCell> cells;
     std::vector<juce::uint8> carved;
     std::vector<RackAccentCell> accents;
+    /**
+        cols*rows lookup, -1 where the panel outline excluded a cell.
+
+        Devices address the grid, not the panel, so a device drawing to the full
+        width will happily place an accent in a rounded corner that was never
+        sampled. Painted blind that lands outside the panel's silhouette — a
+        stray block floating beside the screen.
+    */
+    std::vector<int> cellAt;
 
     float cellW = 0.0f, cellH = 0.0f, px = 0.0f, offX = 0.0f, offY = 0.0f;
 

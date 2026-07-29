@@ -71,8 +71,25 @@ void LookAndFeel::setAccent (AccentId accent, juce::Component* rootToRepaint)
 
 /* ── Fonts ────────────────────────────────────────────────────────────── */
 
+/**
+    The label's own font, not one computed from its height.
+
+    JUCE's default returns label.getFont(), and overriding that quietly discards
+    every setFont a plugin has made — bleep's knob captions are set to bold mono
+    at 9.5pt and were being rendered as whatever a height-derived size produced,
+    which came out smaller and lighter than the value readout beneath them. The
+    caption naming the control ended up less legible than its number.
+
+    A LookAndFeel supplies defaults; it does not get to overrule what a component
+    explicitly asked for. Anything that has not asked falls back to the house
+    mono below.
+*/
 juce::Font LookAndFeel::getLabelFont (juce::Label& label)
 {
+    const auto own = label.getFont();
+    if (own.getHeight() > 0.0f)
+        return own;
+
     return Palette::mono (juce::jmin (13.0f, (float) label.getHeight() * 0.7f));
 }
 
@@ -103,38 +120,81 @@ void LookAndFeel::drawRotarySlider (juce::Graphics& g, int x, int y, int w, int 
     // Proportional, but capped. Unclamped, a 40px-radius knob takes a 6px arc,
     // which on a dense row of them reads as a redesign rather than a palette
     // change. The ceiling keeps the house look a hairline at every size.
-    const auto thickness = juce::jlimit (1.5f, maxArcThickness, radius * 0.16f);
+    const auto thickness = juce::jlimit (1.5f, maxArcThickness, radius * 0.2f);
     const auto arcRadius = radius - thickness * 0.5f;
 
-    // Track: the full sweep, unfilled.
+    // The body: a solid disc the arc runs around.
+    //
+    // Without it a knob is an arc and a tick floating in space — a diagram of
+    // where a control would be rather than a control. It fails the only question
+    // that matters on a dense panel, which is "can I grab this". A filled disc
+    // costs one drawing call and turns the thing into an object, and it matches
+    // how everything else here works: the pixel screen is made of solid cells,
+    // not outlines of cells.
+    const auto bodyRadius = arcRadius - thickness * 1.4f;
+    if (bodyRadius > 2.0f)
+    {
+        g.setColour (Palette::bgPanel());
+        g.fillEllipse (juce::Rectangle<float> (bodyRadius * 2.0f, bodyRadius * 2.0f)
+                           .withCentre (centre));
+    }
+
+    // Track: the full sweep, unfilled. Lifted off trackDim, which against the
+    // panel is close enough to invisible that the knob gave no sense of its own
+    // range — you could see the value but not where it sat within what was
+    // possible.
     juce::Path track;
     track.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f,
                          startAngle, endAngle, true);
-    g.setColour (colourFor (slider, juce::Slider::rotarySliderOutlineColourId, Palette::trackDim()));
+    g.setColour (colourFor (slider, juce::Slider::rotarySliderOutlineColourId,
+                            Palette::divider()));
     g.strokePath (track, juce::PathStrokeType (thickness, juce::PathStrokeType::curved,
                                                juce::PathStrokeType::rounded));
 
-    // Value: the one place a knob spends the accent.
+    // Value: greyscale by default, accent only while the knob is being moved.
+    //
+    // A panel of thirty knobs each drawing an accent arc is the accent used as
+    // fill, at the largest scale in the plugin — and it is self-defeating: when
+    // everything is lit, nothing reads as lit. The site's rule is greyscale with
+    // one accent spent as punctuation, and thirty arcs is not punctuation.
+    //
+    // So the arc is material, and the colour is reserved for the one knob the
+    // hand is on. That turns the accent back into information — it means "this
+    // is what you are changing" instead of "this is a knob".
     if (sliderPos > 0.0f)
     {
+        const bool live = slider.isMouseOverOrDragging() || slider.isMouseButtonDown();
+
         juce::Path value;
         value.addCentredArc (centre.x, centre.y, arcRadius, arcRadius, 0.0f,
                              startAngle, angle, true);
-        g.setColour (slider.isEnabled()
-                         ? colourFor (slider, juce::Slider::rotarySliderFillColourId, Palette::accentBase())
-                         : Palette::trackDim());
+        g.setColour (! slider.isEnabled() ? Palette::trackDim()
+                     : live ? colourFor (slider, juce::Slider::rotarySliderFillColourId,
+                                         Palette::accentBase())
+                            : Palette::textMid());
         g.strokePath (value, juce::PathStrokeType (thickness, juce::PathStrokeType::curved,
                                                    juce::PathStrokeType::rounded));
     }
 
-    // Indicator: a spoke from the hub, not a dot on the rim — it reads at 20px.
-    const auto inner = arcRadius - thickness * 0.75f;
-    const juce::Point<float> tip (centre.x + inner * std::cos (angle - juce::MathConstants<float>::halfPi),
-                                  centre.y + inner * std::sin (angle - juce::MathConstants<float>::halfPi));
-    const juce::Point<float> root (centre.x + inner * 0.35f * std::cos (angle - juce::MathConstants<float>::halfPi),
-                                   centre.y + inner * 0.35f * std::sin (angle - juce::MathConstants<float>::halfPi));
+    // Indicator: a short tick just inside the arc, not a spoke from the hub.
+    //
+    // A line running most of the way to the centre draws a radius, and a wall of
+    // fourteen of them reads as a diagram of wheels — the eye is dragged inward
+    // to the hub, which carries no information, instead of to the rim, which
+    // carries all of it. Keeping the tick at the edge means the arc and the mark
+    // occupy the same ring and the middle of the knob stays empty, which is what
+    // makes a row of them read as instrument rather than as clip-art.
+    // A notch, not a hairline. Given the same weight as a cell on the pixel
+    // screen it reads as something cut into the rim rather than a line drawn
+    // over it, and it survives being glanced at across a fourteen-knob row.
+    const auto outer = arcRadius - thickness * 1.1f;
+    const auto inner = outer - juce::jmax (4.0f, radius * 0.3f);
+    const auto dir = angle - juce::MathConstants<float>::halfPi;
+    const juce::Point<float> tip  (centre.x + outer * std::cos (dir), centre.y + outer * std::sin (dir));
+    const juce::Point<float> root (centre.x + inner * std::cos (dir), centre.y + inner * std::sin (dir));
+
     g.setColour (colourFor (slider, juce::Slider::thumbColourId, Palette::textHi()));
-    g.drawLine ({ root, tip }, juce::jmax (1.0f, thickness * 0.4f));
+    g.drawLine ({ root, tip }, juce::jmax (2.0f, thickness * 1.1f));
 }
 
 void LookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int h,
@@ -162,9 +222,12 @@ void LookAndFeel::drawLinearSlider (juce::Graphics& g, int x, int y, int w, int 
     if (vertical) filled = filled.withTop (sliderPos);
     else          filled = filled.withRight (sliderPos);
 
-    const auto fill = slider.isEnabled()
-                    ? colourFor (slider, juce::Slider::trackColourId, Palette::accentBase())
-                    : Palette::trackDim();
+    // Same rule as the rotary: material by default, accent only under the hand.
+    // Fifteen lit faders on the FX page is a light show, not a mix.
+    const bool live = slider.isMouseOverOrDragging() || slider.isMouseButtonDown();
+    const auto fill = ! slider.isEnabled() ? Palette::trackDim()
+                    : live ? colourFor (slider, juce::Slider::trackColourId, Palette::accentBase())
+                           : Palette::textMid();
     g.setColour (fill);
     g.fillRoundedRectangle (filled, thickness * 0.5f);
 
@@ -242,35 +305,29 @@ void LookAndFeel::drawButtonBackground (juce::Graphics& g, juce::Button& button,
     const auto stateColour = colourFor (button, juce::TextButton::buttonOnColourId,
                                         Palette::accentBase());
 
-    // Accent is punctuation, not fill. An engaged control is a dark chip with a
-    // lit edge and lit text, the way the site spends an instrument's colour on a
-    // single dot rather than a block. Filling the whole button is what makes a
-    // plugin look a decade old: it turns every state into a slab and leaves the
-    // panel a patchwork of coloured rectangles instead of a surface with a few
-    // things lit on it.
-    auto fill = on ? stateColour.withAlpha (0.16f) : backgroundColour;
+    // On is a solid block of colour. Off is material. Nothing else.
+    //
+    // An earlier pass made the on-state a tinted chip with a lit edge and a dot,
+    // reasoning that accent should be punctuation rather than fill. That was
+    // right about gradients and wrong about the replacement: a tint plus an
+    // outline plus a dot is three signals carrying one bit of state, and none of
+    // them is the language the rest of the instrument speaks. The pixel screen
+    // says on or off with a solid cell, and a control should say it the same way.
+    //
+    // The rule about accent-as-punctuation still holds — it is enforced by there
+    // being very few things that can be on at once, not by making the on-state
+    // quiet.
+    auto fill = on ? stateColour : backgroundColour;
 
     if (isDown)             fill = fill.contrasting (0.06f);
-    else if (isHighlighted) fill = fill.brighter (0.10f);
+    else if (isHighlighted) fill = fill.brighter (on ? 0.06f : 0.10f);
 
     g.setColour (fill);
     g.fillRoundedRectangle (bounds, cornerRadius);
 
-    // Off states carry no outline at all. A hairline around every control is the
-    // other half of the boxed-in look; the fill is already enough separation
-    // against the panel, and what is left reads as surface rather than as a grid
-    // of frames.
-    if (on)
-    {
-        g.setColour (stateColour.withAlpha (0.75f));
-        g.drawRoundedRectangle (bounds, cornerRadius, hairline);
-
-        // The dot: one lit mark that says which control is live, readable at a
-        // glance across a dense panel without colouring the panel.
-        const float r = 2.0f;
-        g.setColour (stateColour);
-        g.fillEllipse (bounds.getX() + 6.0f, bounds.getCentreY() - r, r * 2.0f, r * 2.0f);
-    }
+    // No outline in either state. A hairline around every control is the other
+    // half of the boxed-in look, and a solid fill needs no help separating
+    // itself from the panel.
 }
 
 void LookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& button,
@@ -278,21 +335,15 @@ void LookAndFeel::drawButtonText (juce::Graphics& g, juce::TextButton& button,
 {
     const bool on = button.getToggleState();
 
-    // An engaged button now sits on a tinted chip rather than a solid accent
-    // block, so its label takes the accent itself. textColourOnId is deliberately
-    // not consulted here: it holds "text that reads on a filled accent", which is
-    // near-black, and on the new chip that is invisible.
-    const auto stateColour = colourFor (button, juce::TextButton::buttonOnColourId,
-                                        Palette::accentBase());
-
+    // The button is a solid block of accent when on, so the label has to read
+    // against the colour rather than being the colour. textOnAccent is exactly
+    // that — the palette's answer to "text on a filled accent".
     g.setFont (getTextButtonFont (button, button.getHeight()));
-    g.setColour (on ? stateColour
+    g.setColour (on ? colourFor (button, juce::TextButton::textColourOnId, Palette::textOnAccent())
                     : colourFor (button, juce::TextButton::textColourOffId,
                                  isHighlighted ? Palette::textHi() : Palette::textDim()));
 
-    // Leave room for the state dot so the label stays optically centred whether
-    // or not one is lit.
-    g.drawFittedText (button.getButtonText(), button.getLocalBounds().withTrimmedLeft (on ? 8 : 0),
+    g.drawFittedText (button.getButtonText(), button.getLocalBounds(),
                       juce::Justification::centred, 1, 0.9f);
 }
 
