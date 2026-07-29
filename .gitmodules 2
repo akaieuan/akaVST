@@ -1,9 +1,0 @@
-[submodule "bleep"]
-	path = bleep
-	url = https://github.com/akaieuan/akaBleep-VST.git
-[submodule "enzyme"]
-	path = enzyme
-	url = https://github.com/akaieuan/akaEnzyme-VST.git
-[submodule "i4"]
-	path = i4
-	url = https://github.com/akaieuan/akaI4-VST.git
