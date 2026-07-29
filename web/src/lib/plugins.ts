@@ -182,6 +182,7 @@ export const PLUGINS: Plugin[] = [
       { label: "Parameters", value: "81 automatable" },
       { label: "UI themes", value: "8" },
       { label: "Engine", value: "JUCE 8 · C++17" },
+      { label: "Tested in", value: "Ableton Live" },
     ],
     state: {
       shipping: [
@@ -296,6 +297,7 @@ export const PLUGINS: Plugin[] = [
       { label: "FX", value: "2 series slots, 1 of 9 each" },
       { label: "Parameters", value: "76, frozen IDs" },
       { label: "Engine", value: "JUCE 8 · C++17" },
+      { label: "Tested in", value: "Ableton Live" },
     ],
     state: {
       shipping: [
@@ -409,6 +411,7 @@ export const PLUGINS: Plugin[] = [
       { label: "Resonator", value: "48 bands" },
       { label: "Parameters", value: "76 automatable" },
       { label: "Engine", value: "JUCE 8 · C++17" },
+      { label: "Tested in", value: "Ableton Live" },
     ],
     state: {
       shipping: [

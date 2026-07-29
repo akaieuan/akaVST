@@ -48,7 +48,7 @@ export function Hero() {
           className={cn("mt-8 font-mono text-[11px] text-muted-foreground", reveal)}
           style={stagger(4)}
         >
-          {formats} · none of them are finished
+          {formats} · tested in Ableton · none of them are finished
         </p>
       </div>
 
