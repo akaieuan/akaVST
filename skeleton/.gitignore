@@ -1,0 +1,2 @@
+# CMake fetches JUCE in here — ~400MB, same as each plugin's build/.
+build/

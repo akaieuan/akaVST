@@ -30,6 +30,13 @@ export const DEMO_SECTIONS: DemoSectionMeta[] = [
     contents: ["Hairline", "ThemeToggle", ".label", "Card surfaces", "Link idioms", "Entrance"],
   },
   {
+    slug: "skeleton",
+    title: "Skeleton",
+    blurb:
+      "The shared JUCE layer the instruments are built from: one palette, one LookAndFeel, and the blocks a plugin gets assembled out of. The plugin-side half of the same design system.",
+    contents: ["Blocks", "Chassis", "Accents", "Using it"],
+  },
+  {
     slug: "tokens",
     title: "Tokens",
     blurb:
