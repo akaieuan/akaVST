@@ -19,5 +19,7 @@
   "universal": true,
   "platform": "macOS 11.0+ · Apple Silicon and Intel",
   "commit": "58c1036b249f348b87868077b61a61f4cebb38b0",
-  "screenshots": []
+  "screenshots": [
+    "/plugins/enzyme/enzyme-ui.png"
+  ]
 }

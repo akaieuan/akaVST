@@ -282,7 +282,12 @@ export const PLUGINS: Plugin[] = [
         "Ambient Drone",
       ],
     },
-    gallery: [],
+    gallery: [
+      {
+        src: "/plugins/enzyme/enzyme-ui.png",
+        caption: "Layer A. The POOL panel bottom-right blooms with the output and takes the colour of whichever layer is holding the most voices",
+      },
+    ],
     specs: [
       { label: "Layers", value: "4 (A/B/C/D)" },
       { label: "Voices", value: "8, shared with global stealing" },
@@ -310,7 +315,7 @@ export const PLUGINS: Plugin[] = [
       why: "Four timbres. Eight voices. One instrument.",
       features: "Everything that makes it sound like a table, not a laptop.",
       signalFlow: "One voice, four times over.",
-      gallery: "Nothing captured yet.",
+      gallery: "One window, four timbres deep.",
       presets: "Eighteen patches, exposed to the host as programs.",
       specs: "Frozen parameter IDs, so today's presets still open next year.",
       state: "v1.0.0, and specific about what is still missing.",
@@ -423,7 +428,7 @@ export const PLUGINS: Plugin[] = [
       why: "One sample, run through everything, then fed back to the start.",
       features: "Five engines, and a matrix sitting over all of them.",
       signalFlow: "Tape in. Resampled back onto a pad.",
-      gallery: "Nothing captured yet.",
+      gallery: "One window, four timbres deep.",
       presets: "Five, for now.",
       specs: "Seven pages and seventy-six parameters.",
       state: "v0.1.0, the youngest and the largest.",

@@ -29,8 +29,8 @@ type PluginSource = {
 
 const SOURCES: PluginSource[] = [
   { slug: "bleep", dir: "bleep", assets: "assets" },
-  { slug: "enzyme", dir: "enzyme" },
-  { slug: "i4", dir: "i4" },
+  { slug: "enzyme", dir: "enzyme", assets: "assets" },
+  { slug: "i4", dir: "i4", assets: "assets" },
 ];
 
 export type PluginFacts = {
