@@ -34,10 +34,10 @@ void aka_begin_blocks() { pendingTypes.clear(); }
 EMSCRIPTEN_KEEPALIVE
 void aka_push_block (int type)
 {
-    if (type > 0 && type < (int) aka::dsp::BlockType::numTypes)
+    if (type > 0 && type < aka::dsp::numBlockTypes)
         pendingTypes.push_back ((aka::dsp::BlockType) type);
     else
-        pendingTypes.push_back (aka::dsp::BlockType::None);
+        pendingTypes.push_back (aka::dsp::BlockType::none);
 }
 
 EMSCRIPTEN_KEEPALIVE

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "BlockCatalog.h"
 #include "Blocks.h"
 #include <memory>
 #include <vector>
@@ -7,37 +8,25 @@
 namespace aka::dsp
 {
 
-/** The block types the engine knows how to build. Matches the catalogue's ids. */
-enum class BlockType
-{
-    None = 0, Osc, Sub, Noise, Filter, Drive, Env, Lfo, Out, numTypes
-};
+/**
+    Which engine a block type builds, if any.
 
-/** Where a block runs. Derived from the catalogue's group. */
-inline bool isVoiceBlock (BlockType t) noexcept
-{
-    switch (t)
-    {
-        case BlockType::Osc:
-        case BlockType::Sub:
-        case BlockType::Noise:
-        case BlockType::Filter:
-        case BlockType::Drive:
-        case BlockType::Env:  return true;
-        default:              return false;
-    }
-}
-
+    Every block in the catalogue has a BlockType; only some have an engine. The
+    rest return nullptr and are skipped, which is how the tool stays honest
+    while half the catalogue is still a drawing — you can place a Reverb, it
+    just does not do anything yet, and nothing about the addressing changes when
+    it does.
+*/
 inline std::unique_ptr<VoiceEngine> makeVoiceEngine (BlockType t)
 {
     switch (t)
     {
-        case BlockType::Osc:    return std::make_unique<OscEngine>();
-        case BlockType::Sub:    return std::make_unique<SubEngine>();
-        case BlockType::Noise:  return std::make_unique<NoiseEngine>();
-        case BlockType::Filter: return std::make_unique<FilterEngine>();
-        case BlockType::Drive:  return std::make_unique<DriveEngine>();
-        case BlockType::Env:    return std::make_unique<EnvEngine>();
+        case BlockType::osc:    return std::make_unique<OscEngine>();
+        case BlockType::sub:    return std::make_unique<SubEngine>();
+        case BlockType::noise:  return std::make_unique<NoiseEngine>();
+        case BlockType::filter: return std::make_unique<FilterEngine>();
+        case BlockType::drive:  return std::make_unique<DriveEngine>();
+        case BlockType::env:    return std::make_unique<EnvEngine>();
         default:                return nullptr;
     }
 }
@@ -46,8 +35,8 @@ inline std::unique_ptr<Engine> makeBusEngine (BlockType t)
 {
     switch (t)
     {
-        case BlockType::Lfo: return std::make_unique<LfoEngine>();
-        case BlockType::Out: return std::make_unique<OutEngine>();
+        case BlockType::lfo: return std::make_unique<LfoEngine>();
+        case BlockType::out: return std::make_unique<OutEngine>();
         default:             return nullptr;
     }
 }
@@ -160,20 +149,41 @@ public:
         block = maxBlock;
         for (auto& v : voices) v.build (voiceTypes, sr);
         for (auto& e : bus) e->prepare (sr, maxBlock);
-        scratchL.assign ((size_t) maxBlock, 0.0f);
-        scratchR.assign ((size_t) maxBlock, 0.0f);
     }
 
-    /** Rebuild from a fresh block list. Called off the audio thread. */
+    /**
+        Rebuild from a fresh block list, and record where each block landed.
+
+        Off the audio thread. The slot table is the whole point: it is built
+        while the engines are, so it cannot disagree with them.
+    */
     void setBlocks (const std::vector<BlockType>& types)
     {
         voiceTypes.clear();
-        busTypes.clear();
-        for (auto t : types) (isVoiceBlock (t) ? voiceTypes : busTypes).push_back (t);
-
         bus.clear();
-        for (auto t : busTypes)
-            if (auto e = makeBusEngine (t)) { e->prepare (sampleRate, block); bus.push_back (std::move (e)); }
+        slots.clear();
+        slots.reserve (types.size());
+
+        for (auto t : types)
+        {
+            if (isVoiceBlock (t))
+            {
+                if (makeVoiceEngine (t) != nullptr)
+                {
+                    slots.push_back ({ true, (int) voiceTypes.size() });
+                    voiceTypes.push_back (t);
+                    continue;
+                }
+            }
+            else if (auto e = makeBusEngine (t))
+            {
+                e->prepare (sampleRate, block);
+                slots.push_back ({ false, (int) bus.size() });
+                bus.push_back (std::move (e));
+                continue;
+            }
+            slots.push_back ({ false, -1 });   // drawn, but silent
+        }
 
         for (auto& v : voices) v.build (voiceTypes, sampleRate);
     }
@@ -182,29 +192,25 @@ public:
         A parameter, addressed the way the UI has it: block index in the whole
         list, then parameter index. Fanned out to every voice, because a voice
         is a copy of the same instrument and not a separate one.
+
+        Through a lookup built once, not by re-walking the list. The first
+        version counted a slot for every block as it went, which is right until
+        a block produces no engine — then the count and the vector disagree, and
+        every parameter after the first unimplemented block lands on the wrong
+        one. With most of the catalogue still unimplemented that is the common
+        case, not the edge case.
     */
     void setParam (int blockIndex, int paramIndex, float value)
     {
-        int voiceSlot = 0, busSlot = 0, seen = 0;
-        for (auto t : allTypes)
-        {
-            const bool voiceBlock = isVoiceBlock (t);
-            if (seen == blockIndex)
-            {
-                if (voiceBlock) { for (auto& v : voices) v.setParam (voiceSlot, paramIndex, value); }
-                else if (busSlot < (int) bus.size()) bus[(size_t) busSlot]->setParam (paramIndex, value);
-                return;
-            }
-            voiceBlock ? ++voiceSlot : ++busSlot;
-            ++seen;
-        }
+        if (blockIndex < 0 || blockIndex >= (int) slots.size()) return;
+        const Slot s = slots[(size_t) blockIndex];
+        if (s.index < 0) return;   // no engine for this block
+
+        if (s.voice) { for (auto& v : voices) v.setParam (s.index, paramIndex, value); }
+        else if (s.index < (int) bus.size()) bus[(size_t) s.index]->setParam (paramIndex, value);
     }
 
-    void setAllTypes (const std::vector<BlockType>& types)
-    {
-        allTypes = types;
-        setBlocks (types);
-    }
+    void setAllTypes (const std::vector<BlockType>& types) { setBlocks (types); }
 
     void noteOn (int note, float velocity)
     {
@@ -251,10 +257,13 @@ public:
     }
 
 private:
+    /** Where a block's engine ended up. index < 0 means it has none. */
+    struct Slot { bool voice; int index; };
+
     Voice voices[numVoices];
     std::vector<std::unique_ptr<Engine>> bus;
-    std::vector<BlockType> allTypes, voiceTypes, busTypes;
-    std::vector<float> scratchL, scratchR;
+    std::vector<Slot> slots;
+    std::vector<BlockType> voiceTypes;
     double sampleRate = 44100.0;
     int block = 512;
 };
