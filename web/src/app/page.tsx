@@ -3,6 +3,7 @@ import { Footer } from "@/components/site/Footer";
 import { Hero } from "@/components/home/Hero";
 import { CollectionGrid } from "@/components/home/CollectionGrid";
 import { Thesis } from "@/components/home/Thesis";
+import { SocketTeaser } from "@/components/home/SocketTeaser";
 
 /* The landing is a composition of atomic server sections: no client JavaScript
    at this level. The interactive islands (theme, the canvas marks) live inside
@@ -16,6 +17,7 @@ export default function Home() {
         <Hero />
         <CollectionGrid />
         <Thesis />
+        <SocketTeaser />
       </main>
       <Footer />
     </>

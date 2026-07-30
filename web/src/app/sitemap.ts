@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/`, priority: 1 },
     { url: `${base}/plugins`, priority: 0.8 },
     ...PLUGINS.map((p) => ({ url: `${base}/plugins/${p.slug}`, priority: 0.7 })),
+    // A peer of /plugins, not one of them.
+    { url: `${base}/socket`, priority: 0.8 },
     { url: `${base}/demo`, priority: 0.3 },
     ...["marks", "primitives", "skeleton", "tokens"].map((s) => ({
       url: `${base}/demo/${s}`,
