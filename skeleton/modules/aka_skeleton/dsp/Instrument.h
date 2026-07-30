@@ -41,6 +41,8 @@ inline std::unique_ptr<VoiceEngine> makeVoiceEngine (BlockType t)
         case BlockType::gate:      return std::make_unique<GateEngine>();
 
         case BlockType::env:       return std::make_unique<EnvEngine>();
+        case BlockType::env2:      return std::make_unique<ModEnvEngine>();
+        case BlockType::keytrack:  return std::make_unique<KeyTrackEngine>();
         default:                   return nullptr;
     }
 }
@@ -49,10 +51,31 @@ inline std::unique_ptr<Engine> makeBusEngine (BlockType t)
 {
     switch (t)
     {
-        case BlockType::lfo: return std::make_unique<LfoEngine>();
-        case BlockType::seq: return std::make_unique<SeqEngine>();
-        case BlockType::out: return std::make_unique<OutEngine>();
-        default:             return nullptr;
+        case BlockType::lfo:     return std::make_unique<LfoEngine>();
+        case BlockType::seq:     return std::make_unique<SeqEngine>();
+        case BlockType::random:  return std::make_unique<RandomEngine>();
+        case BlockType::follow:  return std::make_unique<FollowEngine>();
+        case BlockType::arp:     return std::make_unique<ArpEngine>();
+
+        case BlockType::delay:   return std::make_unique<DelayEngine>();
+        case BlockType::reverb:  return std::make_unique<ReverbEngine>();
+        case BlockType::chorus:  return std::make_unique<ChorusEngine>();
+        case BlockType::phaser:  return std::make_unique<PhaserEngine>();
+        case BlockType::flanger: return std::make_unique<FlangerEngine>();
+        case BlockType::comp:    return std::make_unique<CompEngine>();
+        case BlockType::limiter: return std::make_unique<LimiterEngine>();
+        case BlockType::tape:    return std::make_unique<TapeEngine>();
+        case BlockType::grain:   return std::make_unique<GrainEngine>();
+        case BlockType::ring:    return std::make_unique<RingEngine>();
+        case BlockType::width:   return std::make_unique<WidthEngine>();
+        case BlockType::fxchain: return std::make_unique<FxChainEngine>();
+
+        case BlockType::macros:  return std::make_unique<MacroEngine>();
+        case BlockType::mixer:   return std::make_unique<MixerEngine>();
+        case BlockType::split:   return std::make_unique<SplitEngine>();
+        case BlockType::voice:   return std::make_unique<VoiceConfigEngine>();
+        case BlockType::out:     return std::make_unique<OutEngine>();
+        default:                 return nullptr;
     }
 }
 
@@ -197,6 +220,7 @@ public:
         bus.clear();
         busOrder_.clear();
         sequencer = nullptr;
+        arp = nullptr;
         slots.clear();
         slots.reserve (types.size());
 
@@ -226,6 +250,14 @@ public:
                 {
                     sequencer = static_cast<SeqEngine*> (e.get());
                     sequencer->setSink (this);
+                }
+                // The arpeggiator plays the instrument too, and unlike the
+                // sequencer it plays what *you* play — so it also has to hear
+                // the keyboard before the voices do.
+                if (t == BlockType::arp)
+                {
+                    arp = static_cast<ArpEngine*> (e.get());
+                    arp->setSink (this);
                 }
                 slots.push_back ({ false, (int) bus.size() });
                 bus.push_back (std::move (e));
@@ -316,7 +348,27 @@ public:
 
     void setAllTypes (const std::vector<BlockType>& types) { setBlocks (types); }
 
+    /**
+        A note from outside.
+
+        With an arpeggiator present it takes the note instead of a voice: you
+        are holding a chord for it to play, not playing the chord. Notes the
+        arpeggiator itself produces arrive through sinkNoteOn and go straight to
+        the pool, which is what stops it feeding itself.
+    */
     void noteOn (int note, float velocity)
+    {
+        if (arp && ! fromSink) { arp->noteOn (note, velocity); return; }
+        playNote (note, velocity);
+    }
+
+    void noteOff (int note)
+    {
+        if (arp && ! fromSink) { arp->noteOff (note); return; }
+        for (auto& v : voices) if (v.currentNote() == note) v.noteOff();
+    }
+
+    void playNote (int note, float velocity)
     {
         for (auto& v : voices) ++v.ageRef();
 
@@ -328,11 +380,6 @@ public:
             for (auto& v : voices) if (v.ageRef() > target->ageRef()) target = &v;
         }
         target->noteOn (note, velocity);
-    }
-
-    void noteOff (int note)
-    {
-        for (auto& v : voices) if (v.currentNote() == note) v.noteOff();
     }
 
     void allNotesOff() { for (auto& v : voices) v.noteOff(); }
@@ -365,8 +412,11 @@ public:
 
     // NoteSink — the sequencer's way in. Same path as a key press, deliberately:
     // a sequenced note and a played note should steal voices by the same rule.
-    void sinkNoteOn (int note, float velocity) override { noteOn (note, velocity); }
-    void sinkNoteOff (int note) override { noteOff (note); }
+    void sinkNoteOn (int note, float velocity) override { playNote (note, velocity); }
+    void sinkNoteOff (int note) override
+    {
+        for (auto& v : voices) if (v.currentNote() == note) v.noteOff();
+    }
 
     /** Which step is playing, for the interface to draw. -1 when stopped. */
     int currentStep() const noexcept { return sequencer ? sequencer->currentStep() : -1; }
@@ -474,6 +524,8 @@ private:
 
     Voice voices[numVoices];
     SeqEngine* sequencer = nullptr;
+    ArpEngine* arp = nullptr;
+    bool fromSink = false;
     std::vector<std::unique_ptr<Engine>> bus;
     std::vector<int> busOrder_;
     std::vector<Slot> slots;

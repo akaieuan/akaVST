@@ -25,7 +25,15 @@ public:
     void setMorph (float v) noexcept { morph = clamp (v, 0.0f, 1.0f); update(); }
     void setWidth (float v) noexcept { width = clamp (v, 0.0f, 1.0f); update(); }
 
-    void reset() noexcept { for (auto& p : peaks) p = {}; }
+    /**
+        Clears the state, not the coefficients.
+
+        `p = {}` zeroed a, b1 and b2 along with z1 and z2 — and a voice calls
+        reset on every note-on, so the filter was silenced permanently by the
+        first note played through it. It measured as exactly zero, which is what
+        sent me looking at the bandwidth instead.
+    */
+    void reset() noexcept { for (auto& p : peaks) { p.z1 = 0.0f; p.z2 = 0.0f; } }
 
     float tick (float x) noexcept
     {
@@ -67,9 +75,11 @@ private:
             const float swept = lerp (table[a][i], table[b][i], t);
             const float hz = lerp (base, swept, morph > 0.001f ? 1.0f : 0.0f);
 
-            // Q from width: narrow rings hard and reads as vocal, wide reads as
-            // a shelf. 4 to 30 covers the useful span.
-            const float q = 30.0f - width * 26.0f;
+            // Real vocal formants have bandwidths of 50 to 130Hz, which is a Q
+            // of about six to fifteen. Thirty was a guess and too narrow for a
+            // low note: at 730Hz it passes a 37Hz band, and a 110Hz saw has
+            // partials at 660 and 770 with nothing between them.
+            const float q = 14.0f - width * 10.0f;
             const float w = twoPi * clamp (hz, 60.0f, (float) sampleRate * 0.45f) / (float) sampleRate;
             const float r = 1.0f - w / (2.0f * q);
 
