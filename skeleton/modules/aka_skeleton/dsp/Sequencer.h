@@ -32,12 +32,14 @@ struct NoteSink
     metronome. A pattern of identical hits is what you get when a step is a
     boolean, and it is why most built-in sequencers sound like a demo.
 
-    Trimmed from bleep in two places, both deliberate. Sixteen steps rather than
-    sixty-four in four pages: the block is one panel and paging inside a panel
-    inside a plugin is a level of nesting too many — pattern length already
-    covers most of what pages were for. And no parameter locks yet; those need
-    a modulation system to lock *to*, which is the next piece of work. The step
-    struct is laid out so they can be added without moving anything.
+    Sixty-four steps as four pages of sixteen, like bleep's. Sixteen was the
+    first attempt and it was the wrong trim: four bars is where a pattern stops
+    being a loop, and playback runs 0..length-1 across the whole range so an odd
+    length crosses page boundaries by itself.
+
+    No parameter locks yet — those need a modulation system to lock *to*, which
+    now exists, so they are the next thing. The step struct is laid out so they
+    drop in without moving anything.
 
     Timing is sample-accurate within the block: the clock advances per sample
     and a step fires on the sample it lands on, not at the next block boundary.
@@ -47,7 +49,9 @@ struct NoteSink
 class Sequencer
 {
 public:
-    static constexpr int numSteps = 16;
+    static constexpr int numSteps = 64;
+    static constexpr int stepsPerPage = 16;
+    static constexpr int numPages = numSteps / stepsPerPage;
 
     struct Step
     {
@@ -82,7 +86,7 @@ public:
     /** Scales every step's gate, so one knob shortens the whole pattern. */
     void setGateScale (float v01) noexcept { gateScale = 0.05f + clamp (v01, 0.0f, 1.0f) * 1.9f; }
 
-    /** 1..16. Short odd lengths against a four-bar phrase is most of what a
+    /** 1..64. Short odd lengths against a four-bar phrase is most of what a
         sequencer is for. */
     void setLength (int n) noexcept { length = clamp (n, 1, numSteps); }
 
@@ -160,10 +164,11 @@ public:
     {
         for (auto& s : steps) s.active = false;
 
+        // Generators work on the whole sixty-four, the way bleep's do — a
+        // Euclidean five that only filled the visible page would be a different
+        // rhythm every time you changed page.
         auto euclid = [this] (int k)
         {
-            // Spread k hits as evenly as sixteen steps allow. Not Bjorklund, but
-            // the same result for every k that fits in one bar.
             for (int i = 0; i < k; ++i) steps[(size_t) (i * numSteps / k)].active = true;
         };
 
@@ -172,12 +177,15 @@ public:
             case Pattern::Fourth:  for (int i = 0; i < numSteps; i += 4) steps[(size_t) i].active = true; break;
             case Pattern::Offbeat: for (int i = 2; i < numSteps; i += 4) steps[(size_t) i].active = true; break;
             case Pattern::Eighths: for (int i = 0; i < numSteps; i += 2) steps[(size_t) i].active = true; break;
-            case Pattern::Euclid3: euclid (3); break;
-            case Pattern::Euclid5: euclid (5); break;
-            case Pattern::Euclid7: euclid (7); break;
+            case Pattern::Euclid3: euclid (12); break;
+            case Pattern::Euclid5: euclid (20); break;
+            case Pattern::Euclid7: euclid (28); break;
             case Pattern::Sparse:
-                for (int i = 0, hits = 3 + (int) (random() * 4.0f); i < hits; ++i)
-                    steps[(size_t) (int) (random() * (float) numSteps)].active = true;
+                // Three to six per page, so a sparse pattern stays sparse
+                // everywhere rather than clumping into one bar.
+                for (int page = 0; page < numPages; ++page)
+                    for (int i = 0, hits = 3 + (int) (random() * 4.0f); i < hits; ++i)
+                        steps[(size_t) (page * stepsPerPage + (int) (random() * (float) stepsPerPage))].active = true;
                 break;
             case Pattern::Dense:
                 for (auto& s : steps) s.active = random() > 0.5f;
