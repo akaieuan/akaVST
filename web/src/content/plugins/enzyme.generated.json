@@ -18,6 +18,6 @@
   "minMacOS": "11.0",
   "universal": true,
   "platform": "macOS 11.0+ · Apple Silicon and Intel",
-  "commit": "c60dea9a95ca448a084e7e2ebac27c641784f737",
+  "commit": "58c1036b249f348b87868077b61a61f4cebb38b0",
   "screenshots": []
 }

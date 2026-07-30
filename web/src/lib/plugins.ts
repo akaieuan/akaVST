@@ -157,19 +157,15 @@ export const PLUGINS: Plugin[] = [
     gallery: [
       {
         src: "/plugins/bleep/akableep-ui.png",
-        caption: "The synth page: oscillators, envelopes, ladder filter",
+        caption: "The synth page, running. The display left of the step grid is a live spectral field, and the lit steps decay behind the playhead",
+      },
+      {
+        src: "/plugins/bleep/light-theme.png",
+        caption: "The same panel on the light theme — every colour is derived, so neither theme is the afterthought",
       },
       {
         src: "/plugins/bleep/sequencer.png",
-        caption: "EDIT mode, with parameter locks marked above the knobs they hold",
-      },
-      {
-        src: "/plugins/bleep/fx-chain.png",
-        caption: "Master FX chain with a live spectrum analyzer",
-      },
-      {
-        src: "/plugins/bleep/presets.png",
-        caption: "Preset browser, favourites starred",
+        caption: "Stopped. A Euclidean 5/16 pattern, with parameter locks marked on the steps that hold them",
       },
     ],
     specs: [

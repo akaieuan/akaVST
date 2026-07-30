@@ -18,11 +18,11 @@
   "minMacOS": "11.0",
   "universal": true,
   "platform": "macOS 11.0+ · Apple Silicon and Intel",
-  "commit": "05a5d674b9ebe0bedaebb8759b265342eb9f83bc",
+  "commit": "2d697d558301c601d0790e7eba9dc548603225c5",
   "screenshots": [
     "/plugins/bleep/akableep-ui.png",
     "/plugins/bleep/fx-chain.png",
-    "/plugins/bleep/patchbay.png",
+    "/plugins/bleep/light-theme.png",
     "/plugins/bleep/presets.png",
     "/plugins/bleep/sequencer.png"
   ]
