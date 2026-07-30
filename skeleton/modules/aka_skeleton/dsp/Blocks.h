@@ -661,6 +661,9 @@ public:
 
     void process (float*, float*, int n) override { seq.advance (n); }
 
+    /** Step velocity while the gate is open — an accent you can patch. */
+    float modValue() const override { return seq.modValue(); }
+
     int currentStep() const noexcept { return seq.currentStep(); }
 
 private:

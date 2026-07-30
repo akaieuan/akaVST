@@ -100,6 +100,16 @@ public:
     bool isRunning() const noexcept { return running; }
     int currentStep() const noexcept { return running ? step : -1; }
 
+    /**
+        The sequencer as a modulation source: the current step's velocity while
+        its gate is open, nothing between.
+
+        A sequencer that can only play notes is half a sequencer. Velocity per
+        step is already there, and pointing it at a cutoff is how a pattern
+        gets an accent that is heard rather than counted.
+    */
+    float modValue() const noexcept { return gateLevel; }
+
     Step& stepAt (int i) noexcept { return steps[(size_t) clamp (i, 0, numSteps - 1)]; }
     const Step& stepAt (int i) const noexcept { return steps[(size_t) clamp (i, 0, numSteps - 1)]; }
 
@@ -121,7 +131,7 @@ public:
 
         for (int i = 0; i < n; ++i)
         {
-            if (gateRemaining > 0 && --gateRemaining == 0) allOff();
+            if (gateRemaining > 0 && --gateRemaining == 0) { allOff(); gateLevel = 0.0f; }
 
             // Swing delays the odd steps only, which is what shuffle is. Applied
             // to the boundary rather than to the tempo, so the bar stays the
@@ -185,6 +195,7 @@ private:
 
         allOff();
         held = clamp (s.note + transpose, 0, 127);
+        gateLevel = s.velocity;
         sink->sinkNoteOn (held, s.velocity);
 
         // At least 32 samples, so a gate of zero is a very short note rather
@@ -197,6 +208,7 @@ private:
         if (held >= 0 && sink != nullptr) sink->sinkNoteOff (held);
         held = -1;
         gateRemaining = 0;
+        gateLevel = 0.0f;
     }
 
     float random() noexcept
@@ -211,6 +223,7 @@ private:
     double sampleRate = 44100.0, clock = 0.0;
     float tempo = 120.0f, division = 1.0f, swing = 0.0f, gateScale = 1.0f;
     int step = -1, length = numSteps, transpose = 0, held = -1, gateRemaining = 0;
+    float gateLevel = 0.0f;
     bool running = false;
 };
 

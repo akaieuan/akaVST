@@ -2,6 +2,7 @@
 
 #include "BlockCatalog.h"
 #include "Blocks.h"
+#include <array>
 #include <memory>
 #include <vector>
 
@@ -215,6 +216,43 @@ public:
         for (auto& v : voices) v.build (voiceTypes, sampleRate);
     }
 
+    /** Wire one modulation route. depth 0 removes it. */
+    void setMod (int slot, int sourceBlock, int destBlock, int destParam, float depth)
+    {
+        if (slot < 0 || slot >= maxRoutes) return;
+        routes[(size_t) slot] = { sourceBlock, destBlock, destParam, depth };
+    }
+
+    /**
+        Pull every cable, and put every destination back where it was.
+
+        Without the restore, unpatching a cable leaves its destination wherever
+        the modulation happened to abandon it — the knob still reads 0.7 and the
+        filter is sitting at 0.3, which is the kind of bug you chase for an hour.
+    */
+    void clearMods()
+    {
+        for (const auto& r : routes)
+            if (r.depth != 0.0f && r.destBlock >= 0 && r.destParam >= 0)
+            {
+                apply (r.destBlock, r.destParam, base[(size_t) r.destBlock][(size_t) r.destParam]);
+                current[(size_t) r.destBlock][(size_t) r.destParam] = base[(size_t) r.destBlock][(size_t) r.destParam];
+                lastSent[(size_t) r.destBlock][(size_t) r.destParam] = -1.0f;
+            }
+        for (auto& r : routes) r = {};
+    }
+
+    /** How hard the whole matrix pushes, and how fast it is allowed to move. */
+    void setModDepth (float d) noexcept { modDepth = clamp (d, 0.0f, 1.0f); }
+    void setModSlew (float v01) noexcept
+    {
+        // 0 is immediate, 1 is about a fifth of a second. Slew is what turns a
+        // square LFO into something that can be pointed at a cutoff without
+        // clicking on every edge.
+        const float seconds = 0.0005f + clamp (v01, 0.0f, 1.0f) * 0.2f;
+        modSlew = 1.0f - std::exp (-1.0f / (seconds * (float) sampleRate / (float) modInterval));
+    }
+
     /**
         A parameter, addressed the way the UI has it: block index in the whole
         list, then parameter index. Fanned out to every voice, because a voice
@@ -232,6 +270,23 @@ public:
         if (blockIndex < 0 || blockIndex >= (int) slots.size()) return;
         const Slot s = slots[(size_t) blockIndex];
         if (s.index < 0) return;   // no engine for this block
+
+        // Remembered, because modulation is an offset from what you set — not
+        // a replacement for it. Without a base the first modulated frame
+        // becomes the new resting value and the knob quietly stops meaning
+        // anything.
+        if (paramIndex >= 0 && paramIndex < maxParams)
+            base[(size_t) blockIndex][(size_t) paramIndex] = value;
+
+        apply (blockIndex, paramIndex, value);
+    }
+
+    /** Straight through, with no base bookkeeping. */
+    void apply (int blockIndex, int paramIndex, float value)
+    {
+        if (blockIndex < 0 || blockIndex >= (int) slots.size()) return;
+        const Slot s = slots[(size_t) blockIndex];
+        if (s.index < 0) return;
 
         if (s.voice) { for (auto& v : voices) v.setParam (s.index, paramIndex, value); }
         else if (s.index < (int) bus.size()) bus[(size_t) s.index]->setParam (paramIndex, value);
@@ -282,6 +337,12 @@ public:
     {
         for (int i = 0; i < n; ++i)
         {
+            // Every sixteen samples, not every block. At 48kHz a block boundary
+            // is 2.7ms — a 370Hz staircase, which on a cutoff is an audible
+            // buzz rather than a sweep. Sixteen puts the steps above 1.5kHz and
+            // costs nothing at these route counts.
+            if (--modCountdown <= 0) { modCountdown = modInterval; updateMods(); }
+
             float mix = 0.0f;
             for (auto& v : voices) if (v.isActive()) mix += v.tick();
             // Headroom for eight voices without normalising by voice count,
@@ -302,8 +363,60 @@ public:
     }
 
 private:
+    /**
+        Read every source, sum what lands on each destination, write it once.
+
+        Summed rather than last-wins: two things pointed at one cutoff should
+        add up, which is what a modular patch does and what anyone wiring a
+        second cable expects. Applied only where something changed, because
+        setParam on a filter recomputes its coefficients and doing that for
+        every parameter of every block sixteen times a sample is real work.
+    */
+    void updateMods()
+    {
+        if (routes.empty()) return;
+
+        for (const auto& r : routes)
+        {
+            if (r.depth == 0.0f || r.destParam < 0 || r.destParam >= maxParams) continue;
+            if (r.destBlock < 0 || r.destBlock >= (int) slots.size()) continue;
+
+            const float source = modValueOf (r.sourceBlock);
+            const float want = clamp (base[(size_t) r.destBlock][(size_t) r.destParam]
+                                        + source * r.depth * modDepth,
+                                      0.0f, 1.0f);
+
+            float& held = current[(size_t) r.destBlock][(size_t) r.destParam];
+            held += (want - held) * modSlew;
+            if (std::fabs (held - lastSent[(size_t) r.destBlock][(size_t) r.destParam]) < 0.0005f) continue;
+
+            lastSent[(size_t) r.destBlock][(size_t) r.destParam] = held;
+            apply (r.destBlock, r.destParam, held);
+        }
+    }
+
+    /** A block's modulation output, whatever kind of block it is. */
+    float modValueOf (int blockIndex) const
+    {
+        if (blockIndex < 0 || blockIndex >= (int) slots.size()) return 0.0f;
+        const Slot s = slots[(size_t) blockIndex];
+        if (s.index < 0) return 0.0f;
+        // Voice-stage sources report from voice zero. A per-voice envelope
+        // pointed at a shared destination is ambiguous by nature — the filter
+        // already handles the case that matters, per voice, inside the voice.
+        return s.voice ? 0.0f : bus[(size_t) s.index]->modValue();
+    }
+
     /** Where a block's engine ended up. index < 0 means it has none. */
     struct Slot { bool voice; int index; };
+
+    /** One cable. */
+    struct ModRoute { int sourceBlock = -1, destBlock = -1, destParam = -1; float depth = 0.0f; };
+
+    static constexpr int maxRoutes = 32;
+    static constexpr int maxParams = 12;
+    static constexpr int maxBlocks = 128;
+    static constexpr int modInterval = 16;
 
     /** The sequencer is the one bus engine the instrument knows by name. */
     SeqEngine* dynamicSeq (Engine* e) const noexcept
@@ -316,6 +429,12 @@ private:
     std::vector<std::unique_ptr<Engine>> bus;
     std::vector<Slot> slots;
     std::vector<BlockType> voiceTypes;
+    std::array<ModRoute, maxRoutes> routes {};
+    std::array<std::array<float, maxParams>, maxBlocks> base {};
+    std::array<std::array<float, maxParams>, maxBlocks> current {};
+    std::array<std::array<float, maxParams>, maxBlocks> lastSent {};
+    float modDepth = 1.0f, modSlew = 1.0f;
+    int modCountdown = 0;
     double sampleRate = 44100.0;
     int block = 512;
 };

@@ -78,4 +78,20 @@ void aka_set_step (int block, int index, int active, int note, float velocity, f
 EMSCRIPTEN_KEEPALIVE
 int aka_current_step() { return instrument.currentStep(); }
 
+/** One cable: a source block's modulation into a destination's parameter. */
+EMSCRIPTEN_KEEPALIVE
+void aka_set_mod (int slot, int sourceBlock, int destBlock, int destParam, float depth)
+{
+    instrument.setMod (slot, sourceBlock, destBlock, destParam, depth);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void aka_clear_mods() { instrument.clearMods(); }
+
+EMSCRIPTEN_KEEPALIVE
+void aka_set_mod_depth (float d) { instrument.setModDepth (d); }
+
+EMSCRIPTEN_KEEPALIVE
+void aka_set_mod_slew (float v) { instrument.setModSlew (v); }
+
 } // extern "C"
