@@ -10,7 +10,7 @@ import { ACCENT_COLORS } from "@/lib/plugins";
 import { PLUGIN_ENTRIES } from "@/lib/plugin-facts";
 import { SOCKET } from "@/lib/socket";
 import { arrowNudge, cardSurface } from "@/components/home/shared";
-import { DeepDive, FeatureGrid, State, WhyItExists } from "@/components/plugin/Sections";
+import { DeepDive, FeatureGrid, Gallery, State, WhyItExists } from "@/components/plugin/Sections";
 
 export const metadata: Metadata = {
   title: `${SOCKET.name} — ${SOCKET.kind}`,
@@ -76,6 +76,12 @@ export default function SocketPage() {
             <PixelRack size={300} ratio={0.62} grid={36} mode={SOCKET.mark} accent={SOCKET.accent} once fluid />
           </div>
         </section>
+
+        {/* Higher than a plugin puts its gallery, and deliberately so. A plugin
+            page can hold its screenshots back because you already know roughly
+            what the thing is; nobody has seen this app, and a page announcing
+            something unreleased has to show it before it asks to be read. */}
+        <Gallery heading={SOCKET.headings.gallery} items={SOCKET.gallery} />
 
         <WhyItExists heading={SOCKET.headings.why} paragraphs={SOCKET.why} />
         <DeepDive sections={SOCKET.deepDive} />

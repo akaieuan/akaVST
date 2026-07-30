@@ -23,9 +23,11 @@ export type SocketEntry = {
   why: string[];
   deepDive: { heading: string; paragraphs: string[] }[];
   features: { title: string; body: string }[];
+  /** Same shape as a plugin's, so the same Gallery renders it. */
+  gallery: { src: string; caption: string }[];
   specs: { label: string; value: string }[];
   state: { shipping: string[]; next: string[] };
-  headings: { why: string; features: string; specs: string; state: string };
+  headings: { why: string; features: string; gallery: string; specs: string; state: string };
   accent: PluginAccent;
   mark: RackMode;
   repo: string;
@@ -95,6 +97,14 @@ export const SOCKET: SocketEntry = {
     },
   ],
 
+  gallery: [
+    {
+      src: "/socket/interface.png",
+      caption:
+        "Nine blocks on one page — oscillator into filter, delay and reverb, a compressor and limiter, an EQ and a spectrum, and bleep's sequencer along the bottom. Bottom left is the plugin's real size in pixels; the right panel is editing the one selected block.",
+    },
+  ],
+
   specs: [
     { label: "Kind", value: "Desktop application" },
     { label: "Built with", value: "Electron · React · TypeScript" },
@@ -125,6 +135,7 @@ export const SOCKET: SocketEntry = {
   headings: {
     why: "Doing it a fourth time should not mean starting again.",
     features: "The vocabulary you build an instrument out of.",
+    gallery: "One page, nine blocks, and a sound coming out of it.",
     specs: "What it is, and what it shares with the plugins.",
     state: "Everything makes a sound. Nothing saves yet.",
   },
