@@ -2,6 +2,7 @@
 
 #include "BlockCatalog.h"
 #include "Blocks.h"
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <vector>
@@ -73,10 +74,12 @@ public:
     void build (const std::vector<BlockType>& types, double sampleRate)
     {
         chain.clear();
+        order.clear();
         for (auto t : types)
             if (auto e = makeVoiceEngine (t))
             {
                 e->prepare (sampleRate, 0);
+                order.push_back ((int) chain.size());
                 chain.push_back (std::move (e));
             }
         envs.clear();
@@ -132,12 +135,29 @@ public:
         }
 
         float x = 0.0f;
-        for (auto& e : chain) x = static_cast<VoiceEngine*> (e.get())->tick (x, ctx);
+        for (int i : order) x = chain[(size_t) i]->tick (x, ctx);
         return x;
+    }
+
+    /**
+        The order to run them in.
+
+        Layout order until told otherwise, which is what a rack does and is at
+        least honest — but it is a layout decision standing in for a routing
+        one, and Socket has a whole view for the second. Anything not listed
+        keeps its place, so a half-wired instrument still makes a sound.
+    */
+    void setOrder (const std::vector<int>& slots)
+    {
+        order.clear();
+        for (int i : slots) if (i >= 0 && i < (int) chain.size()) order.push_back (i);
+        for (int i = 0; i < (int) chain.size(); ++i)
+            if (std::find (order.begin(), order.end(), i) == order.end()) order.push_back (i);
     }
 
 private:
     std::vector<std::unique_ptr<VoiceEngine>> chain;
+    std::vector<int> order;
     std::vector<EnvEngine*> envs;
     std::vector<FilterEngine*> filters;
     VoiceContext ctx;
@@ -175,6 +195,7 @@ public:
     {
         voiceTypes.clear();
         bus.clear();
+        busOrder_.clear();
         sequencer = nullptr;
         slots.clear();
         slots.reserve (types.size());
@@ -213,6 +234,7 @@ public:
             slots.push_back ({ false, -1 });   // drawn, but silent
         }
 
+        for (int i = 0; i < (int) bus.size(); ++i) busOrder_.push_back (i);
         for (auto& v : voices) v.build (voiceTypes, sampleRate);
     }
 
@@ -315,6 +337,32 @@ public:
 
     void allNotesOff() { for (auto& v : voices) v.noteOff(); }
 
+    /**
+        Signal order, as block indices.
+
+        Sent separately from the block list rather than reordering it, because
+        the interface addresses a parameter by its position in that list. Sort
+        the list and every knob points at the wrong block.
+    */
+    void setChain (const std::vector<int>& blockOrder)
+    {
+        std::vector<int> voiceOrder, busOrder;
+        for (int b : blockOrder)
+        {
+            if (b < 0 || b >= (int) slots.size()) continue;
+            const Slot s = slots[(size_t) b];
+            if (s.index < 0) continue;
+            (s.voice ? voiceOrder : busOrder).push_back (s.index);
+        }
+
+        for (auto& v : voices) v.setOrder (voiceOrder);
+
+        busOrder_.clear();
+        for (int i : busOrder) busOrder_.push_back (i);
+        for (int i = 0; i < (int) bus.size(); ++i)
+            if (std::find (busOrder_.begin(), busOrder_.end(), i) == busOrder_.end()) busOrder_.push_back (i);
+    }
+
     // NoteSink — the sequencer's way in. Same path as a key press, deliberately:
     // a sequenced note and a played note should steal voices by the same rule.
     void sinkNoteOn (int note, float velocity) override { noteOn (note, velocity); }
@@ -352,7 +400,7 @@ public:
             r[i] = mix;
         }
 
-        for (auto& e : bus) e->process (l, r, n);
+        for (int i : busOrder_) bus[(size_t) i]->process (l, r, n);
     }
 
     int activeVoices() const
@@ -427,6 +475,7 @@ private:
     Voice voices[numVoices];
     SeqEngine* sequencer = nullptr;
     std::vector<std::unique_ptr<Engine>> bus;
+    std::vector<int> busOrder_;
     std::vector<Slot> slots;
     std::vector<BlockType> voiceTypes;
     std::array<ModRoute, maxRoutes> routes {};

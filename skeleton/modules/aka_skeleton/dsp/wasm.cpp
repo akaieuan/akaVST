@@ -17,6 +17,7 @@ namespace
 {
 aka::dsp::Instrument instrument;
 std::vector<aka::dsp::BlockType> pendingTypes;
+std::vector<int> pendingChain;
 }
 
 extern "C" {
@@ -42,6 +43,16 @@ void aka_push_block (int type)
 
 EMSCRIPTEN_KEEPALIVE
 void aka_commit_blocks() { instrument.setAllTypes (pendingTypes); }
+
+/** Signal order, pushed the same way the block list is. */
+EMSCRIPTEN_KEEPALIVE
+void aka_begin_chain() { pendingChain.clear(); }
+
+EMSCRIPTEN_KEEPALIVE
+void aka_push_chain (int blockIndex) { pendingChain.push_back (blockIndex); }
+
+EMSCRIPTEN_KEEPALIVE
+void aka_commit_chain() { instrument.setChain (pendingChain); }
 
 EMSCRIPTEN_KEEPALIVE
 void aka_set_param (int block, int index, float value)

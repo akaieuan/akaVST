@@ -36,7 +36,7 @@ emcc "$here/wasm.cpp" \
   -s ALLOW_MEMORY_GROWTH=1 \
   -s INITIAL_MEMORY=16MB \
   -s EXPORTED_RUNTIME_METHODS='["HEAPF32","HEAPU8"]' \
-  -s EXPORTED_FUNCTIONS='["_aka_prepare","_aka_begin_blocks","_aka_push_block","_aka_commit_blocks","_aka_set_param","_aka_note_on","_aka_note_off","_aka_all_notes_off","_aka_process","_aka_active_voices","_aka_set_step","_aka_current_step","_aka_set_mod","_aka_clear_mods","_aka_set_mod_depth","_aka_set_mod_slew","_malloc","_free"]' \
+  -s EXPORTED_FUNCTIONS='["_aka_prepare","_aka_begin_blocks","_aka_push_block","_aka_commit_blocks","_aka_begin_chain","_aka_push_chain","_aka_commit_chain","_aka_set_param","_aka_note_on","_aka_note_off","_aka_all_notes_off","_aka_process","_aka_active_voices","_aka_set_step","_aka_current_step","_aka_set_mod","_aka_clear_mods","_aka_set_mod_depth","_aka_set_mod_slew","_malloc","_free"]' \
   -o "$out/engine.js"
 
 rm -f "$out/engine.wasm"   # SINGLE_FILE embeds it; a stale copy only confuses
