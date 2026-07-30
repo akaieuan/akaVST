@@ -240,6 +240,10 @@ export const PLUGINS: Plugin[] = [
     ],
     features: [
       {
+        title: "A screen that shows the layers",
+        body: "The POOL panel blooms with the output and takes the colour of whichever layer is holding the most voices, so a stack changes hue as it changes hands.",
+      },
+      {
         title: "Four layers, one voice pool",
         body: "Eight voices shared across A to D with global stealing, in five multi modes including a three-point MIDI split.",
       },

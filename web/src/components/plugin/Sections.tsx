@@ -121,7 +121,7 @@ export function Gallery({ heading, items }: { heading: string; items: Plugin["ga
   if (items.length === 0) return null;
   return (
     <section className="pb-16">
-      <Heading kicker="The interface" meta={`${items.length} views`}>
+      <Heading kicker="The interface" meta={`${items.length} ${items.length === 1 ? "view" : "views"}`}>
         {heading}
       </Heading>
       <div className="flex flex-col gap-8">
