@@ -67,4 +67,15 @@ void aka_process (float* left, float* right, int frames)
 EMSCRIPTEN_KEEPALIVE
 int aka_active_voices() { return instrument.activeVoices(); }
 
+/** One sequencer step, from the face. Note is absolute MIDI. */
+EMSCRIPTEN_KEEPALIVE
+void aka_set_step (int block, int index, int active, int note, float velocity, float gate)
+{
+    instrument.setStep (block, index, active != 0, note, velocity, gate);
+}
+
+/** Which step is playing, so the grid can draw its own playhead. */
+EMSCRIPTEN_KEEPALIVE
+int aka_current_step() { return instrument.currentStep(); }
+
 } // extern "C"

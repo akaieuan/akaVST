@@ -34,7 +34,7 @@
 //   lfo: 0=Shape, 1=Rate, 2=Depth, 3=Sync
 //   random: 0=Mode, 1=Rate, 2=Amount, 3=Smooth
 //   follow: 0=Attack, 1=Release, 2=Gain
-//   seq: 0=Rate, 1=Swing, 2=Gate, 3=Loop
+//   seq: 0=Tempo, 1=Rate, 2=Swing, 3=Gate, 4=Length, 5=Run
 //   arp: 0=Mode, 1=Rate, 2=Octaves, 3=Gate
 //   keytrack: 0=Amount, 1=Centre, 2=Curve
 //   delay: 0=Time, 1=Feedback, 2=Spread, 3=Tone, 4=Mix, 5=Sync
@@ -153,7 +153,7 @@ inline constexpr BlockInfo blockInfo[] = {
     { "lfo", "LFO", true ,  4 },  // lfo
     { "random", "Random", true ,  4 },  // random
     { "follow", "Follower", true ,  3 },  // follow
-    { "seq", "Sequencer", true ,  4 },  // seq
+    { "seq", "Sequencer", true ,  6 },  // seq
     { "arp", "Arpeggiator", true ,  4 },  // arp
     { "keytrack", "Key tracking", true ,  3 },  // keytrack
     { "delay", "Delay", false,  6 },  // delay

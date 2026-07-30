@@ -21,13 +21,25 @@ inline std::unique_ptr<VoiceEngine> makeVoiceEngine (BlockType t)
 {
     switch (t)
     {
-        case BlockType::osc:    return std::make_unique<OscEngine>();
-        case BlockType::sub:    return std::make_unique<SubEngine>();
-        case BlockType::noise:  return std::make_unique<NoiseEngine>();
-        case BlockType::filter: return std::make_unique<FilterEngine>();
-        case BlockType::drive:  return std::make_unique<DriveEngine>();
-        case BlockType::env:    return std::make_unique<EnvEngine>();
-        default:                return nullptr;
+        case BlockType::osc:       return std::make_unique<OscEngine>();
+        case BlockType::sub:       return std::make_unique<SubEngine>();
+        case BlockType::noise:     return std::make_unique<NoiseEngine>();
+        case BlockType::wavetable: return std::make_unique<WavetableEngine>();
+        case BlockType::sampler:   return std::make_unique<SamplerEngine>();
+        case BlockType::fmop:      return std::make_unique<FmEngine>();
+        case BlockType::string:    return std::make_unique<StringEngine>();
+
+        case BlockType::filter:    return std::make_unique<FilterEngine>();
+        case BlockType::formant:   return std::make_unique<FormantEngine>();
+        case BlockType::comb:      return std::make_unique<CombEngine>();
+        case BlockType::drive:     return std::make_unique<DriveEngine>();
+        case BlockType::fold:      return std::make_unique<FoldEngine>();
+        case BlockType::crush:     return std::make_unique<CrushEngine>();
+        case BlockType::eq:        return std::make_unique<EqEngine>();
+        case BlockType::gate:      return std::make_unique<GateEngine>();
+
+        case BlockType::env:       return std::make_unique<EnvEngine>();
+        default:                   return nullptr;
     }
 }
 
@@ -36,6 +48,7 @@ inline std::unique_ptr<Engine> makeBusEngine (BlockType t)
     switch (t)
     {
         case BlockType::lfo: return std::make_unique<LfoEngine>();
+        case BlockType::seq: return std::make_unique<SeqEngine>();
         case BlockType::out: return std::make_unique<OutEngine>();
         default:             return nullptr;
     }
@@ -138,7 +151,7 @@ private:
     than the quietest because it is predictable, and a player can hear
     predictable and play around it.
 */
-class Instrument
+class Instrument : public NoteSink
 {
 public:
     static constexpr int numVoices = 8;
@@ -161,23 +174,37 @@ public:
     {
         voiceTypes.clear();
         bus.clear();
+        sequencer = nullptr;
         slots.clear();
         slots.reserve (types.size());
 
+        // Try voice, then bus. The factories are the source of truth for where
+        // a block runs, and asking them cannot disagree with them.
+        //
+        // The catalogue derives a stage from the group, and the group is wrong
+        // for two blocks that matter: an LFO and a sequencer are both Modulate,
+        // but a free-running LFO is shared and a sequencer *plays* the
+        // instrument rather than living inside one voice. Gating on the derived
+        // stage meant neither was ever built — the sequencer's Run did nothing
+        // and there was no clue why, because a block with no engine is exactly
+        // as silent as a block whose engine is not running.
         for (auto t : types)
         {
-            if (isVoiceBlock (t))
+            if (makeVoiceEngine (t) != nullptr)
             {
-                if (makeVoiceEngine (t) != nullptr)
-                {
-                    slots.push_back ({ true, (int) voiceTypes.size() });
-                    voiceTypes.push_back (t);
-                    continue;
-                }
+                slots.push_back ({ true, (int) voiceTypes.size() });
+                voiceTypes.push_back (t);
+                continue;
             }
-            else if (auto e = makeBusEngine (t))
+            if (auto e = makeBusEngine (t))
             {
                 e->prepare (sampleRate, block);
+                // The sequencer plays the instrument, so it needs a way back in.
+                if (t == BlockType::seq)
+                {
+                    sequencer = static_cast<SeqEngine*> (e.get());
+                    sequencer->setSink (this);
+                }
                 slots.push_back ({ false, (int) bus.size() });
                 bus.push_back (std::move (e));
                 continue;
@@ -233,6 +260,24 @@ public:
 
     void allNotesOff() { for (auto& v : voices) v.noteOff(); }
 
+    // NoteSink — the sequencer's way in. Same path as a key press, deliberately:
+    // a sequenced note and a played note should steal voices by the same rule.
+    void sinkNoteOn (int note, float velocity) override { noteOn (note, velocity); }
+    void sinkNoteOff (int note) override { noteOff (note); }
+
+    /** Which step is playing, for the interface to draw. -1 when stopped. */
+    int currentStep() const noexcept { return sequencer ? sequencer->currentStep() : -1; }
+
+    /** A step, from the face. Addressed by block so a second sequencer works. */
+    void setStep (int blockIndex, int index, bool active, int note, float velocity, float gate)
+    {
+        if (blockIndex < 0 || blockIndex >= (int) slots.size()) return;
+        const Slot s = slots[(size_t) blockIndex];
+        if (s.voice || s.index < 0 || s.index >= (int) bus.size()) return;
+        if (auto* seq = dynamicSeq (bus[(size_t) s.index].get()))
+            seq->setStep (index, active, note, velocity, gate);
+    }
+
     void process (float* l, float* r, int n)
     {
         for (int i = 0; i < n; ++i)
@@ -260,7 +305,14 @@ private:
     /** Where a block's engine ended up. index < 0 means it has none. */
     struct Slot { bool voice; int index; };
 
+    /** The sequencer is the one bus engine the instrument knows by name. */
+    SeqEngine* dynamicSeq (Engine* e) const noexcept
+    {
+        return e == static_cast<Engine*> (sequencer) ? sequencer : nullptr;
+    }
+
     Voice voices[numVoices];
+    SeqEngine* sequencer = nullptr;
     std::vector<std::unique_ptr<Engine>> bus;
     std::vector<Slot> slots;
     std::vector<BlockType> voiceTypes;
