@@ -7,6 +7,12 @@
       "runtimeArgs": ["--dir", "web", "dev"],
       "port": 3000,
       "autoPort": true
+    },
+    {
+      "name": "socket",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "../Socket", "dev"],
+      "port": 4200
     }
   ]
 }
