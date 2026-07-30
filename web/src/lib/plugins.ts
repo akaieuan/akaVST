@@ -94,9 +94,9 @@ export const PLUGINS: Plugin[] = [
         ],
       },
       {
-        heading: "Wiring, and then ruining it",
+        heading: "Ruining it",
         paragraphs: [
-          "The patch bay is a drag-jack-to-jack cable matrix. Sources are the LFO, the filter envelope, noise and velocity. Destinations are oscillator pitch and pulse width, cutoff, resonance and amplitude. Drag an input jack vertically to set depth, right-click a cable to cut it.",
+          "The drag-to-wire patch bay has left. Wiring modulation by hand is a different instrument from an acid box with a sequencer, and it was sharing an editor with one; it is becoming akaPatch, which keeps this voice and gives the cables a window of their own.",
           "After the voice, the master chain runs chorus into phaser into bitcrush into ping-pong delay into reverb. Each stage auto-bypasses at zero mix, each is P-lockable per step, and the whole rack has its own preset bank and a randomiser.",
           "That is the fast route from a clean bleep to a ruined, perfect dub-techno smear.",
         ],
@@ -112,8 +112,8 @@ export const PLUGINS: Plugin[] = [
         body: "Four pages of sixteen, REC and EDIT workflows, and per-step chords, velocity, gate and chance.",
       },
       {
-        title: "Drag-to-wire patch bay",
-        body: "A cable matrix from LFO, filter envelope, noise and velocity into pitch, width, cutoff, resonance and amplitude.",
+        title: "A screen that watches the output",
+        body: "The display beside the step grid is a live spectral field, blooming from the centre and driven by the instrument's own filterbank rather than by a clock.",
       },
       {
         title: "Master FX chain",
@@ -133,7 +133,7 @@ export const PLUGINS: Plugin[] = [
  MIDI ─▶┤  sub    ├─▶ mix ─▶ tanh drive ─▶ ladder filter ─▶ amp env ─▶┐
         └─ ring ──┘              ▲              ▲                       │
                                  │              │                       │
-        LFO · filter env · noise · velocity  ──▶ patch bay              │
+        LFO · filter env · noise · velocity  ──▶ modulation             │
                                                                         ▼
         out ◀── reverb ◀── ping-pong delay ◀── bitcrush ◀── phaser ◀── chorus`,
     presets: {
@@ -164,10 +164,6 @@ export const PLUGINS: Plugin[] = [
         caption: "EDIT mode, with parameter locks marked above the knobs they hold",
       },
       {
-        src: "/plugins/bleep/patchbay.png",
-        caption: "The patch bay, a drag-to-wire cable matrix",
-      },
-      {
         src: "/plugins/bleep/fx-chain.png",
         caption: "Master FX chain with a live spectrum analyzer",
       },
@@ -180,21 +176,21 @@ export const PLUGINS: Plugin[] = [
       { label: "Voice", value: "Monophonic" },
       { label: "Sequencer", value: "64 steps across 4 pages" },
       { label: "Parameters", value: "81 automatable" },
-      { label: "UI themes", value: "8" },
+      { label: "UI themes", value: "2 (light and dark)" },
       { label: "Engine", value: "JUCE 8 · C++17" },
       { label: "Tested in", value: "Ableton Live" },
     ],
     state: {
       shipping: [
-        "Acid voice, sequencer, patch bay and FX chain",
+        "Acid voice, 64-step sequencer and master FX chain",
         "39 factory presets and a user store",
         "Universal binary, Apple Silicon and Intel",
       ],
       next: [
+        "A modulation section, replacing what the patch bay used to reach",
         "Developer ID signing and notarisation",
         "A signed .pkg installer",
         "A pluginval strict pass across a multi-DAW matrix",
-        "A branded plugin icon, replacing the stock JUCE one",
       ],
     },
     headings: {
@@ -296,6 +292,7 @@ export const PLUGINS: Plugin[] = [
       { label: "Voices", value: "8, shared with global stealing" },
       { label: "FX", value: "2 series slots, 1 of 9 each" },
       { label: "Parameters", value: "76, frozen IDs" },
+      { label: "UI themes", value: "2 (light and dark)" },
       { label: "Engine", value: "JUCE 8 · C++17" },
       { label: "Tested in", value: "Ableton Live" },
     ],
@@ -304,6 +301,7 @@ export const PLUGINS: Plugin[] = [
         "Voice engine, four layers and the Multi modes",
         "FX rack, mangle section and Dirt",
         "Arpeggiator, 18 presets, output safety",
+        "A live spectral screen, coloured by whichever layer holds the pool",
         "Universal binary passing auval on both architectures",
       ],
       next: [
