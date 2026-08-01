@@ -176,6 +176,159 @@ inline float fold (float x, float amount, float symmetry) noexcept
     read at all. Jitter wobbles the hold, which is what makes a crusher sound
     like failing hardware rather than like a clean decimator.
 */
+/**
+    Five named drive curves, ported from enzyme's LoFiMangle.
+
+    A single tanh with a gain in front of it can only answer "more drive". It
+    cannot answer "a different kind of drive", which is the request people
+    actually have — and the five below differ in harmonic content, not amount:
+    PNP is asymmetric so it makes even harmonics, Tube adds a squared term for
+    the same reason by another route, Pickup is a gentle cubic that stays clean
+    for longer, Diode rectifies, and Crunch folds rather than clips.
+
+    enzyme's version used juce::jlimit; that is the only edit.
+*/
+enum class DriveCurve { PNP = 0, Tube, Pickup, Diode, Crunch, count };
+
+inline float driveCurve (float x, int type) noexcept
+{
+    switch ((DriveCurve) type)
+    {
+        // Asymmetric transistor-style soft clip. The two branches differ, which
+        // is the entire point — a symmetric curve has no even harmonics.
+        case DriveCurve::PNP:
+            return x >= 0.0f ? std::tanh (x) : 0.85f * std::tanh (1.2f * x);
+
+        case DriveCurve::Tube:
+        {
+            const float y = std::tanh (x);
+            return y + 0.15f * y * y;
+        }
+
+        case DriveCurve::Pickup:
+            return clamp (x - (x * x * x) / 3.0f, -1.0f, 1.0f);
+
+        case DriveCurve::Diode:
+            return std::copysign (1.0f - std::exp (-std::fabs (x)), x);
+
+        case DriveCurve::Crunch:
+            return clamp (std::sin (x * 1.5f) * 1.2f, -1.0f, 1.0f);
+
+        default:
+            return std::tanh (x);
+    }
+}
+
+/**
+    Sample-rate reduction on its own, separate from bit depth.
+
+    enzyme fuses the two inside LoFiMangle in a fixed order, so you cannot have
+    the aliasing without the quantisation noise. They are unrelated damage —
+    one quantises amplitude, the other time — and wanting only the second is a
+    normal thing to want.
+
+    Smooth interpolates toward the held value instead of stepping to it, which
+    takes the edge off without removing the aliasing that is the point.
+*/
+class Downsampler
+{
+public:
+    void setSampleRate (double sr) noexcept { sampleRate = sr > 0.0 ? sr : 44100.0; }
+
+    /** 0..1 to a divisor of 1..64, exponentially — 1 to 4 is where it lives. */
+    void setRate (float v01) noexcept
+    {
+        divisor = std::pow (2.0f, clamp (v01, 0.0f, 1.0f) * 6.0f);
+    }
+    void setSmooth (float v) noexcept { smooth = clamp (v, 0.0f, 1.0f); }
+    void setMix (float v) noexcept    { mix = clamp (v, 0.0f, 1.0f); }
+
+    void reset() noexcept { phase = 0.0f; held = 0.0f; out = 0.0f; }
+
+    float tick (float x) noexcept
+    {
+        phase += 1.0f;
+        if (phase >= divisor)
+        {
+            phase -= divisor;
+            held = x;
+        }
+        // A one-pole toward the held value. Cubed, because a linear map spends
+        // most of the knob doing nothing measurable: at half travel a linear
+        // coefficient still tracks within a sample, and the images only moved
+        // 0.2dB. Zero is still exactly 1, so the default is a true
+        // sample-and-hold rather than a filtered one.
+        //
+        // The floor is one hold period rather than a small constant. A fixed
+        // floor is a lowpass with no idea what it is smoothing: at 0.002 it
+        // took 25dB off the fundamental as well as the images, which is a knob
+        // that can mute the signal. Settling over exactly one hold is the most
+        // smoothing the staircase can absorb while still following its input —
+        // and at divisor 1 it collapses to 1, so Smooth correctly does nothing
+        // when there is nothing being held.
+        const float g = 1.0f - smooth;
+        const float c = std::fmax (1.0f / divisor, g * g * g);
+        out = flush (out + c * (held - out));
+        return lerp (x, out, mix);
+    }
+
+private:
+    double sampleRate = 44100.0;
+    float divisor = 1.0f, smooth = 0.0f, mix = 1.0f;
+    float phase = 0.0f, held = 0.0f, out = 0.0f;
+};
+
+/**
+    Tilt: one knob from dark to bright through flat.
+
+    i4 spends this as a macro inside Deform and Ring, biasing gain across a band
+    split it already had. On its own it is a shelving pair around a pivot — lift
+    the top by g and cut the bottom by g, or the reverse — and it is a better
+    first move on a sound than four bands are, because it is one decision.
+
+    A single one-pole gives both bands: low is the filter's output, high is what
+    is left over. That identity is why this costs almost nothing.
+*/
+class Tilt
+{
+public:
+    void setSampleRate (double sr) noexcept { sampleRate = sr > 0.0 ? sr : 44100.0; update(); }
+
+    /** -1 dark, 0 flat, +1 bright. */
+    void setTilt (float v) noexcept  { tilt = clamp (v, -1.0f, 1.0f); update(); }
+    void setPivot (float v01) noexcept { pivot01 = clamp (v01, 0.0f, 1.0f); update(); }
+    void setGain (float g) noexcept  { gain = clamp (g, 0.0f, 2.0f); }
+
+    void reset() noexcept { z = 0.0f; }
+
+    float tick (float x) noexcept
+    {
+        z = flush (z + coefficient * (x - z));
+        const float low  = z;
+        const float high = x - z;
+        return (low * lowGain + high * highGain) * gain;
+    }
+
+private:
+    void update() noexcept
+    {
+        // 100 Hz to 4 kHz. Below that the pivot stops separating anything, and
+        // above it the "low" band is most of the sound and tilt reads as level.
+        const float hz = hzFrom01 (pivot01, 100.0f, 4000.0f);
+        coefficient = clamp (twoPi * hz / (float) sampleRate, 0.0f, 1.0f);
+
+        // ±12 dB at the extremes, in opposite directions, so flat is unity and
+        // the two ends are the same distance from it.
+        const float db = tilt * 12.0f;
+        highGain = std::pow (10.0f, db / 20.0f);
+        lowGain  = std::pow (10.0f, -db / 20.0f);
+    }
+
+    double sampleRate = 44100.0;
+    float tilt = 0.0f, pivot01 = 0.5f, gain = 1.0f;
+    float coefficient = 0.05f, lowGain = 1.0f, highGain = 1.0f, z = 0.0f;
+};
+
 class Crusher
 {
 public:

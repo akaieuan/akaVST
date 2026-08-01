@@ -14,7 +14,7 @@
 //
 // Parameter order, for writing setParam against:
 //
-//   osc: 0=Wave, 1=Tune, 2=Fine, 3=Level, 4=PW
+//   osc: 0=Wave, 1=Tune, 2=Fine, 3=Level, 4=PW, 5=Sync
 //   sub: 0=Level, 1=Octave, 2=Shape
 //   noise: 0=Kind, 1=Level, 2=Colour
 //   wavetable: 0=Table, 1=Position, 2=Warp, 3=Level
@@ -24,11 +24,13 @@
 //   filter: 0=Mode, 1=Cutoff, 2=Reso, 3=Env, 4=Key
 //   formant: 0=Vowel, 1=Morph, 2=Width, 3=Mix
 //   comb: 0=Tune, 1=Feedback, 2=Mix
-//   drive: 0=Drive, 1=Bias, 2=Tone, 3=Mix
+//   drive: 0=Type, 1=Drive, 2=Bias, 3=Tone, 4=Mix
 //   fold: 0=Fold, 1=Symmetry, 2=Mix
 //   crush: 0=Bits, 1=Rate, 2=Jitter, 3=Mix
+//   downsmp: 0=Rate, 1=Smooth, 2=Mix
 //   eq: 0=Low, 1=Lo mid, 2=Hi mid, 3=High
 //   gate: 0=Thresh, 1=Attack, 2=Hold, 3=Release
+//   tilt: 0=Tilt, 1=Pivot, 2=Gain
 //   env: 0=A, 1=D, 2=S, 3=R, 4=Curve, 5=Vel
 //   env2: 0=Delay, 1=A, 2=D, 3=S, 4=R, 5=Curve, 6=Amount
 //   lfo: 0=Shape, 1=Rate, 2=Depth, 3=Sync
@@ -37,6 +39,9 @@
 //   seq: 0=Tempo, 1=Rate, 2=Swing, 3=Gate, 4=Length, 5=Run
 //   arp: 0=Mode, 1=Rate, 2=Octaves, 3=Gate
 //   keytrack: 0=Amount, 1=Centre, 2=Curve
+//   scale: 0=In, 1=Root, 2=Scale, 3=Range, 4=Amount
+//   sh: 0=Rate, 1=Slew, 2=Amount, 3=Source
+//   slew: 0=In, 1=Time, 2=Curve, 3=Mode
 //   delay: 0=Time, 1=Feedback, 2=Spread, 3=Tone, 4=Mix, 5=Sync
 //   reverb: 0=Size, 1=Decay, 2=Damp, 3=Pre, 4=Width, 5=Mix
 //   chorus: 0=Rate, 1=Depth, 2=Voices, 3=Spread, 4=Mix
@@ -83,42 +88,47 @@ enum class BlockType
     drive        = 11,  // Character
     fold         = 12,  // Wavefolder
     crush        = 13,  // Bitcrusher
-    eq           = 14,  // EQ
-    gate         = 15,  // Gate
-    env          = 16,  // Envelope
-    env2         = 17,  // Mod envelope
-    lfo          = 18,  // LFO
-    random       = 19,  // Random
-    follow       = 20,  // Follower
-    seq          = 21,  // Sequencer
-    arp          = 22,  // Arpeggiator
-    keytrack     = 23,  // Key tracking
-    delay        = 24,  // Delay
-    reverb       = 25,  // Reverb
-    chorus       = 26,  // Chorus
-    phaser       = 27,  // Phaser
-    flanger      = 28,  // Flanger
-    comp         = 29,  // Compressor
-    limiter      = 30,  // Limiter
-    tape         = 31,  // Tape
-    grain        = 32,  // Granular
-    ring         = 33,  // Resonator
-    width        = 34,  // Stereo
-    fxchain      = 35,  // FX chain
-    patch        = 36,  // Patch bay
-    macros       = 37,  // Macros
-    mixer        = 38,  // Mixer
-    voice        = 39,  // Voice
-    split        = 40,  // Crossover
-    out          = 41,  // Output
-    screen       = 42,  // Screen
-    scope        = 43,  // Scope
-    analyser     = 44,  // Analyser
-    meter        = 45,  // Meter
-    keys         = 46,  // Keyboard
-    xy           = 47,  // XY pad
-    pads         = 48,  // Pads
-    readout      = 49,  // Readout
+    downsmp      = 14,  // Downsample
+    eq           = 15,  // EQ
+    gate         = 16,  // Gate
+    tilt         = 17,  // Tilt
+    env          = 18,  // Envelope
+    env2         = 19,  // Mod envelope
+    lfo          = 20,  // LFO
+    random       = 21,  // Random
+    follow       = 22,  // Follower
+    seq          = 23,  // Sequencer
+    arp          = 24,  // Arpeggiator
+    keytrack     = 25,  // Key tracking
+    scale        = 26,  // Scale
+    sh           = 27,  // Sample & hold
+    slew         = 28,  // Glide
+    delay        = 29,  // Delay
+    reverb       = 30,  // Reverb
+    chorus       = 31,  // Chorus
+    phaser       = 32,  // Phaser
+    flanger      = 33,  // Flanger
+    comp         = 34,  // Compressor
+    limiter      = 35,  // Limiter
+    tape         = 36,  // Tape
+    grain        = 37,  // Granular
+    ring         = 38,  // Resonator
+    width        = 39,  // Stereo
+    fxchain      = 40,  // FX chain
+    patch        = 41,  // Patch bay
+    macros       = 42,  // Macros
+    mixer        = 43,  // Mixer
+    voice        = 44,  // Voice
+    split        = 45,  // Crossover
+    out          = 46,  // Output
+    screen       = 47,  // Screen
+    scope        = 48,  // Scope
+    analyser     = 49,  // Analyser
+    meter        = 50,  // Meter
+    keys         = 51,  // Keyboard
+    xy           = 52,  // XY pad
+    pads         = 53,  // Pads
+    readout      = 54,  // Readout
     numTypes
 };
 
@@ -133,7 +143,7 @@ struct BlockInfo
 
 inline constexpr BlockInfo blockInfo[] = {
     { "none", "None", false,  0 },
-    { "osc", "Oscillator", true ,  5 },  // osc
+    { "osc", "Oscillator", true ,  6 },  // osc
     { "sub", "Sub", true ,  3 },  // sub
     { "noise", "Noise", true ,  3 },  // noise
     { "wavetable", "Wavetable", true ,  4 },  // wavetable
@@ -143,11 +153,13 @@ inline constexpr BlockInfo blockInfo[] = {
     { "filter", "Filter", true ,  5 },  // filter
     { "formant", "Formant", true ,  4 },  // formant
     { "comb", "Comb", true ,  3 },  // comb
-    { "drive", "Character", true ,  4 },  // drive
+    { "drive", "Character", true ,  5 },  // drive
     { "fold", "Wavefolder", true ,  3 },  // fold
     { "crush", "Bitcrusher", true ,  4 },  // crush
+    { "downsmp", "Downsample", true ,  3 },  // downsmp
     { "eq", "EQ", true ,  4 },  // eq
     { "gate", "Gate", true ,  4 },  // gate
+    { "tilt", "Tilt", true ,  3 },  // tilt
     { "env", "Envelope", true ,  6 },  // env
     { "env2", "Mod envelope", true ,  7 },  // env2
     { "lfo", "LFO", true ,  4 },  // lfo
@@ -156,6 +168,9 @@ inline constexpr BlockInfo blockInfo[] = {
     { "seq", "Sequencer", true ,  6 },  // seq
     { "arp", "Arpeggiator", true ,  4 },  // arp
     { "keytrack", "Key tracking", true ,  3 },  // keytrack
+    { "scale", "Scale", true ,  5 },  // scale
+    { "sh", "Sample & hold", true ,  4 },  // sh
+    { "slew", "Glide", true ,  4 },  // slew
     { "delay", "Delay", false,  6 },  // delay
     { "reverb", "Reverb", false,  6 },  // reverb
     { "chorus", "Chorus", false,  5 },  // chorus

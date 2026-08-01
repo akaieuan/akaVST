@@ -7,6 +7,7 @@
 #include "Filter.h"
 #include "Noise.h"
 #include "Oscillator.h"
+#include "Scales.h"
 #include "Effects.h"
 #include "Sequencer.h"
 #include "Shapers.h"
@@ -62,12 +63,12 @@ struct VoiceEngine : Engine
 
 /* ── Source ───────────────────────────────────────────────────────────── */
 
-/** Oscillator: Wave, Tune, Fine, Level, PW. */
+/** Oscillator: Wave, Tune, Fine, Level, PW, Sync. */
 class OscEngine final : public VoiceEngine
 {
 public:
-    void prepare (double sr, int) override { osc.setSampleRate (sr); }
-    void reset() override { osc.reset(); }
+    void prepare (double sr, int) override { osc.setSampleRate (sr); master.setSampleRate (sr); }
+    void reset() override { osc.reset(); master.reset(); }
 
     void setParam (int i, float v) override
     {
@@ -78,19 +79,38 @@ public:
             case 2: fine = (v * 2.0f - 1.0f) * 0.5f; break;    // ±50 cents
             case 3: level = v; break;
             case 4: osc.setPulseWidth (0.05f + v * 0.9f); break;
+            case 5: sync = v; break;
             default: break;
         }
     }
 
     float tick (float in, const VoiceContext& v) override
     {
-        osc.setFrequency (midiToHz (v.note + tune + fine));
+        const float base = midiToHz (v.note + tune + fine);
+
+        // Hard sync. The audible oscillator runs *above* the note and is reset
+        // by a silent one running at it — so the pitch you hear stays the note
+        // while the timbre sweeps, which is the whole trick. Sync at zero skips
+        // the master entirely rather than running it at a ratio of one, so an
+        // unsynced oscillator costs exactly what it did before.
+        if (sync > 0.0001f)
+        {
+            osc.setFrequency (base * (1.0f + sync * 7.0f));
+            master.setFrequency (base);
+            master.tick();
+            if (master.didWrap()) osc.resetPhase();
+        }
+        else
+        {
+            osc.setFrequency (base);
+        }
+
         return in + osc.tick() * level;
     }
 
 private:
-    Oscillator osc;
-    float tune = 0.0f, fine = 0.0f, level = 0.8f;
+    Oscillator osc, master;
+    float tune = 0.0f, fine = 0.0f, level = 0.8f, sync = 0.0f;
 };
 
 /** Sub: Level, Octave, Shape. */
@@ -359,10 +379,11 @@ public:
     {
         switch (i)
         {
-            case 0: drive = 1.0f + v * 24.0f; break;
-            case 1: bias = (v * 2.0f - 1.0f) * 0.5f; break;
-            case 2: tone = v; break;
-            case 3: mix = v; break;
+            case 0: type = (int) (v * ((float) DriveCurve::count - 0.001f)); break;
+            case 1: drive = 1.0f + v * 24.0f; break;
+            case 2: bias = (v * 2.0f - 1.0f) * 0.5f; break;
+            case 3: tone = v; break;
+            case 4: mix = v; break;
             default: break;
         }
     }
@@ -372,16 +393,19 @@ public:
         // Bias before the nonlinearity, so asymmetric clipping brings in even
         // harmonics. Symmetric tanh only ever gives odd ones, which is why a
         // drive knob with no bias sounds like the same fuzz at every setting.
-        float wet = std::tanh ((in + bias) * drive) - std::tanh (bias * drive);
+        // Subtracting the curve's own value at the bias point removes the DC
+        // that introduces — otherwise Bias is a fader for a click.
+        float wet = driveCurve ((in + bias) * drive, type) - driveCurve (bias * drive, type);
         const float c = 0.02f + tone * 0.9f;
         lp = flush (lp + c * (wet - lp));
         wet = lerp (lp, wet, tone);
-        // Compensate: 24x gain into a tanh is much louder than the input.
+        // Compensate: 24x gain into a saturator is much louder than the input.
         return lerp (in, wet / (1.0f + drive * 0.06f), mix);
     }
 
 private:
     double sampleRate = 44100.0;
+    int type = 0;
     float drive = 4.0f, bias = 0.0f, tone = 0.5f, mix = 1.0f, lp = 0.0f;
 };
 
@@ -485,6 +509,54 @@ public:
 
 private:
     Crusher crusher;
+};
+
+/** Downsample: Rate, Smooth, Mix. */
+class DownsampleEngine final : public VoiceEngine
+{
+public:
+    void prepare (double sr, int) override { srr.setSampleRate (sr); }
+    void reset() override { srr.reset(); }
+
+    void setParam (int i, float v) override
+    {
+        switch (i)
+        {
+            case 0: srr.setRate (v); break;
+            case 1: srr.setSmooth (v); break;
+            case 2: srr.setMix (v); break;
+            default: break;
+        }
+    }
+
+    float tick (float in, const VoiceContext&) override { return srr.tick (in); }
+
+private:
+    Downsampler srr;
+};
+
+/** Tilt: Tilt, Pivot, Gain. */
+class TiltEngine final : public VoiceEngine
+{
+public:
+    void prepare (double sr, int) override { tilt.setSampleRate (sr); }
+    void reset() override { tilt.reset(); }
+
+    void setParam (int i, float v) override
+    {
+        switch (i)
+        {
+            case 0: tilt.setTilt (v * 2.0f - 1.0f); break;   // centre is flat
+            case 1: tilt.setPivot (v); break;
+            case 2: tilt.setGain (v * 2.0f); break;          // centre is unity
+            default: break;
+        }
+    }
+
+    float tick (float in, const VoiceContext&) override { return tilt.tick (in); }
+
+private:
+    Tilt tilt;
 };
 
 /** EQ: Low, Lo mid, Hi mid, High. */
@@ -619,6 +691,192 @@ private:
     std::uint32_t state = 22222u;
     float phase = 0.0f, rate = 2.0f, depth = 0.5f, value = 0.0f, held = 0.0f;
     int shape = 0;
+};
+
+/**
+    Scale: Root, Scale, Range, Amount.
+
+    A quantiser for a modulation signal, not for notes on the way in. Whatever
+    is patched into it — an LFO, a random, an envelope — comes out on the
+    degrees of a scale, so a cable to a pitch produces something in key instead
+    of something in tune with nothing.
+
+    Range is what makes it a musical control rather than a maths one: it decides
+    how many semitones full modulation covers, and quantising happens inside
+    that span. Two octaves of a pentatonic is a different instrument from four
+    octaves of chromatic, and neither is a "depth".
+*/
+class ScaleEngine final : public Engine
+{
+public:
+    void prepare (double, int) override {}
+    void reset() override { input = 0.0f; output = 0.0f; }
+
+    void setParam (int i, float v) override
+    {
+        switch (i)
+        {
+            // In arrives as a parameter like any other, which is what lets the
+            // existing modulation matrix reach it — a cable to Scale · In goes
+            // through exactly the path a cable to Filter · Cutoff does.
+            case 0: input = v * 2.0f - 1.0f; break;
+            case 1: root = (int) (v * 11.999f); break;
+            case 2: scale = (int) (v * ((float) Scales::count - 0.001f)); break;
+            case 3: range = 1.0f + v * 47.0f; break;   // 1 to 48 semitones
+            case 4: amount = v; break;
+            default: break;
+        }
+    }
+
+    void process (float*, float*, int) override
+    {
+        const float semitones = input * range;
+        output = Scales::snapTo (semitones, scale, root) / range;
+    }
+
+    float modValue() const override { return output * amount; }
+
+private:
+    int root = 0, scale = Scales::Major;
+    float range = 24.0f, amount = 1.0f, input = 0.0f, output = 0.0f;
+};
+
+/**
+    Sample & hold: Rate, Slew, Amount, Source.
+
+    Both plugins write one of these inline and neither exposes it — i4 inside
+    the crusher, enzyme inside LoFiMangle's SRR. A value that only changes on a
+    clock is half of what makes modular modulation sound like modular
+    modulation, and it is one line of DSP behind a knob nobody had.
+
+    Slew is not smoothing for its own sake: at zero this steps, which is the
+    point, and turning it up walks between the held values instead, which turns
+    the same block into a random glide.
+*/
+class SampleHoldEngine final : public Engine
+{
+public:
+    void prepare (double sr, int) override { sampleRate = sr; }
+    void reset() override { phase = 0.0f; held = 0.0f; value = 0.0f; ramp = 0.0f; }
+
+    void setParam (int i, float v) override
+    {
+        switch (i)
+        {
+            case 0: rate = hzFrom01 (v, 0.05f, 60.0f); break;
+            case 1: slew = v; break;
+            case 2: amount = v; break;
+            case 3: source = (int) (v * 2.999f); break;
+            default: break;
+        }
+    }
+
+    void process (float*, float*, int n) override
+    {
+        const float inc = rate / (float) sampleRate;
+        for (int i = 0; i < n; ++i)
+        {
+            ramp += inc;
+            if (ramp >= 1.0f) ramp -= 1.0f;
+
+            phase += inc;
+            if (phase >= 1.0f)
+            {
+                phase -= 1.0f;
+                switch (source)
+                {
+                    case 1:  held = ramp * 2.0f - 1.0f; break;              // Ramp
+                    case 2:  held = std::sin (ramp * twoPi); break;         // Sine
+                    default:                                                // Noise
+                        state ^= state << 13; state ^= state >> 17; state ^= state << 5;
+                        held = (float) (state >> 8 & 0xffff) / 32768.0f - 1.0f;
+                        break;
+                }
+            }
+
+            // At slew 0 the coefficient is exactly 1 and this is a true hold.
+            // Above that, slew is a time: squared, because the useful half of
+            // the range is short, and up to half a second, which is long enough
+            // to turn a hold into a walk at any musical rate.
+            const float slewMs = slew * slew * 500.0f;
+            const float c = slew < 0.0001f
+                          ? 1.0f
+                          : clamp (1.0f / (slewMs * 0.001f * (float) sampleRate), 0.0f, 1.0f);
+            value = flush (value + c * (held - value));
+        }
+    }
+
+    float modValue() const override { return value * amount; }
+
+private:
+    double sampleRate = 44100.0;
+    std::uint32_t state = 0x9e3779b9u;
+    int source = 0;
+    float rate = 4.0f, slew = 0.0f, amount = 0.7f;
+    float phase = 0.0f, ramp = 0.0f, held = 0.0f, value = 0.0f;
+};
+
+/**
+    Glide: Time, Curve, Mode.
+
+    A slew limiter. i4 hides one inside Tape as `glideMs`, where it stops a
+    speed change from being a jump; on its own it is what turns a stepped
+    modulation into a moving one, and it is the difference between a sequencer
+    that clicks between pitches and one that slides.
+
+    Rise and Fall are separate because they are musically different: a fast
+    attack with a slow decay is an envelope shape, and a block that can only
+    do both at once cannot make one.
+*/
+class SlewEngine final : public Engine
+{
+public:
+    void prepare (double sr, int) override { sampleRate = sr; }
+    void reset() override { value = 0.0f; input = 0.0f; }
+
+    void setParam (int i, float v) override
+    {
+        switch (i)
+        {
+            case 0: input = v * 2.0f - 1.0f; break;
+            case 1: timeMs = 1.0f + v * v * 2000.0f; break;   // squared: the useful half is short
+            case 2: curve = v; break;
+            case 3: mode = (int) (v * 2.999f); break;
+            default: break;
+        }
+    }
+
+    void process (float*, float*, int n) override
+    {
+        // The full range is -1 to 1, so crossing it in timeMs means moving 2
+        // over timeMs × sampleRate ÷ 1000 samples. Writing 2000 here instead of
+        // 2 — as if timeMs were seconds — put every setting past the clamp, and
+        // the knob measured as doing nothing at all rather than as doing the
+        // wrong amount, which is the failure mode that looks like a dead wire.
+        const float c = clamp (2.0f / (timeMs * 0.001f * (float) sampleRate), 0.0f, 1.0f);
+        for (int i = 0; i < n; ++i)
+        {
+            const bool rising = input > value;
+            // Mode 1 slews only the rise and lets falls through instantly;
+            // mode 2 the reverse. Mode 0 slews both.
+            const bool slewThis = mode == 0 || (mode == 1 && rising) || (mode == 2 && ! rising);
+            if (! slewThis) { value = input; continue; }
+
+            const float d = input - value;
+            // Curve at 0 is linear — a constant rate. At 1 it is exponential,
+            // which is what a capacitor does and what an ear expects.
+            const float step = lerp (c * (d > 0.0f ? 1.0f : -1.0f) * 0.5f, c * d, curve);
+            value = flush (value + step);
+            if ((d > 0.0f && value > input) || (d < 0.0f && value < input)) value = input;
+        }
+    }
+
+    float modValue() const override { return value; }
+
+private:
+    double sampleRate = 44100.0;
+    int mode = 0;
+    float timeMs = 200.0f, curve = 0.5f, value = 0.0f, input = 0.0f;
 };
 
 /**

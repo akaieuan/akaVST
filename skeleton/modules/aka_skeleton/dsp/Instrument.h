@@ -37,6 +37,8 @@ inline std::unique_ptr<VoiceEngine> makeVoiceEngine (BlockType t)
         case BlockType::drive:     return std::make_unique<DriveEngine>();
         case BlockType::fold:      return std::make_unique<FoldEngine>();
         case BlockType::crush:     return std::make_unique<CrushEngine>();
+        case BlockType::downsmp:   return std::make_unique<DownsampleEngine>();
+        case BlockType::tilt:      return std::make_unique<TiltEngine>();
         case BlockType::eq:        return std::make_unique<EqEngine>();
         case BlockType::gate:      return std::make_unique<GateEngine>();
 
@@ -54,6 +56,9 @@ inline std::unique_ptr<Engine> makeBusEngine (BlockType t)
         case BlockType::lfo:     return std::make_unique<LfoEngine>();
         case BlockType::seq:     return std::make_unique<SeqEngine>();
         case BlockType::random:  return std::make_unique<RandomEngine>();
+        case BlockType::sh:      return std::make_unique<SampleHoldEngine>();
+        case BlockType::scale:   return std::make_unique<ScaleEngine>();
+        case BlockType::slew:    return std::make_unique<SlewEngine>();
         case BlockType::follow:  return std::make_unique<FollowEngine>();
         case BlockType::arp:     return std::make_unique<ArpEngine>();
 
