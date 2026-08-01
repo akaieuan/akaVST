@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Socket's web build, copied in from the other repository. It is minified
+    // output and a compiled WebAssembly module — linting it produced eleven
+    // hundred warnings about somebody else's generated code and buried the
+    // ones about ours.
+    "public/socket-test/**",
   ]),
 ]);
 
