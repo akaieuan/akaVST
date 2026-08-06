@@ -74,7 +74,13 @@ public:
     {
         switch (i)
         {
-            case 0: osc.setMode ((int) (v * 3.999f)); break;   // Saw Square Sine FM
+            // Five, not four: Oscillator::Mode is Sine Triangle Saw Square FM.
+            // This decoded against 3.999 — a multiplier for a four-item list —
+            // so every wave resolved one short of the one named and FM could
+            // not be reached at all. The comment that used to sit here read
+            // "Saw Square Sine FM", which was the catalogue's order rather than
+            // the enum's, and was wrong in a second way.
+            case 0: osc.setMode ((int) (v * 4.999f)); break;
             case 1: tune = std::round ((v * 2.0f - 1.0f) * 24.0f); break;
             case 2: fine = (v * 2.0f - 1.0f) * 0.5f; break;    // ±50 cents
             case 3: level = v; break;
